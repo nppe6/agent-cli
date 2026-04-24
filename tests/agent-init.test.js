@@ -6,6 +6,10 @@ const assert = require('node:assert/strict');
 
 const agentInit = require('../lib/actions/agent-init');
 const { PACKAGE_SYNC_SCRIPT } = require('../lib/utils/agent-os');
+const {
+  GITIGNORE_BLOCK_END,
+  GITIGNORE_BLOCK_START
+} = require('../lib/utils/gitignore');
 
 function createTempProject() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'agentos-cli-'));
@@ -25,7 +29,7 @@ test('injects full workflow into a clean project', async () => {
     }
   });
 
-  await agentInit(projectDirectory, { preset: 'vue', force: true });
+  await agentInit(projectDirectory, { preset: 'vue', force: true, gitMode: 'track' });
 
   assert.equal(fs.existsSync(path.join(projectDirectory, '.agent-os')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
@@ -36,6 +40,7 @@ test('injects full workflow into a clean project', async () => {
 
   const packageJson = JSON.parse(fs.readFileSync(path.join(projectDirectory, 'package.json'), 'utf8'));
   assert.equal(packageJson.scripts['agent-os:sync'], PACKAGE_SYNC_SCRIPT);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.gitignore')), false);
 });
 
 test('aborts when overwrite is rejected', async () => {
@@ -44,7 +49,7 @@ test('aborts when overwrite is rejected', async () => {
 
   const result = await agentInit(
     projectDirectory,
-    { preset: 'vue' },
+    { preset: 'vue', gitMode: 'track' },
     { promptOverwrite: async () => false }
   );
 
@@ -60,7 +65,7 @@ test('overwrites existing workflow files after confirmation', async () => {
 
   const result = await agentInit(
     projectDirectory,
-    { preset: 'vue' },
+    { preset: 'vue', gitMode: 'track' },
     { promptOverwrite: async () => true }
   );
 
@@ -70,3 +75,63 @@ test('overwrites existing workflow files after confirmation', async () => {
   const agentsContent = fs.readFileSync(path.join(projectDirectory, 'AGENTS.md'), 'utf8');
   assert.match(agentsContent, /Compound Engineering/);
 });
+
+test('appends workflow ignore block at the end of .gitignore', async () => {
+  const projectDirectory = createTempProject();
+  fs.writeFileSync(path.join(projectDirectory, '.gitignore'), 'dist/\ncoverage/\n', 'utf8');
+
+  const result = await agentInit(projectDirectory, { preset: 'vue', force: true, gitMode: 'ignore' });
+
+  assert.equal(result.gitMode, 'ignore');
+  const gitignoreContent = fs.readFileSync(path.join(projectDirectory, '.gitignore'), 'utf8');
+  assert.match(gitignoreContent, /^dist\/\ncoverage\/\n\n/m);
+  assert.match(gitignoreContent, new RegExp(escapeRegExp(GITIGNORE_BLOCK_START)));
+  assert.match(gitignoreContent, /AGENTS\.md/);
+  assert.match(gitignoreContent, /scripts\/sync-agent-os\.ps1/);
+  assert.match(gitignoreContent, new RegExp(escapeRegExp(GITIGNORE_BLOCK_END)));
+});
+
+test('track mode only removes the managed block from .gitignore', async () => {
+  const projectDirectory = createTempProject();
+  fs.writeFileSync(
+    path.join(projectDirectory, '.gitignore'),
+    [
+      'dist/',
+      'coverage/',
+      '',
+      GITIGNORE_BLOCK_START,
+      'AGENTS.md',
+      'CLAUDE.md',
+      '.agent-os/',
+      '.claude/',
+      '.codex/',
+      'scripts/sync-agent-os.ps1',
+      GITIGNORE_BLOCK_END,
+      ''
+    ].join('\n'),
+    'utf8'
+  );
+
+  const result = await agentInit(projectDirectory, { preset: 'vue', force: true, gitMode: 'track' });
+
+  assert.equal(result.gitMode, 'track');
+  const gitignoreContent = fs.readFileSync(path.join(projectDirectory, '.gitignore'), 'utf8');
+  assert.equal(gitignoreContent, 'dist/\ncoverage/\n');
+});
+
+test('prompts for git mode when it is not provided', async () => {
+  const projectDirectory = createTempProject();
+
+  const result = await agentInit(
+    projectDirectory,
+    { preset: 'vue', force: true },
+    { promptGitMode: async () => 'ignore' }
+  );
+
+  assert.equal(result.gitMode, 'ignore');
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.gitignore')), true);
+});
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
