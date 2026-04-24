@@ -6,15 +6,40 @@
   "author": {
     "name": "XiaoSir"
   },
+  "homepage": "https://github.com/nppe6/agent-cli#readme",
+  "bugs": {
+    "url": "https://github.com/nppe6/agent-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nppe6/agent-cli.git"
+  },
   "bin": {
     "agentos-cli": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "test": "node --test"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "agent-os",
-    "cli"
+    "cli",
+    "ai-workflow",
+    "codex",
+    "claude",
+    "scaffold"
   ],
   "license": "ISC",
   "dependencies": {
