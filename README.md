@@ -1,9 +1,10 @@
 # agentos-cli
 
-用于把现有项目补齐一整套 AI 工作流配置。
+用于把 Vue 项目补齐一整套 AI 工作流配置。
 
 ## 适用场景
 
+- 仅适用于Vue项目中进行注入使用
 - 项目不是从模板新建的
 - 需要快速注入 `AGENTS.md`、`.agent-os`、`.claude`、`.codex`
 - 接受整套覆盖，不做内容合并
@@ -39,6 +40,9 @@ agentos-cli agent init [target]
 
 `git mode` 是必选策略：未传 `--git-mode` 时，CLI 会主动询问。
 
+- `track`：提交到 Git，推荐团队项目使用，确保所有成员共享同一套 AI 工作流规则。
+- `ignore`：追加到 `.gitignore`，适合个人临时增强，不推荐团队项目长期使用。
+
 ## 注入内容
 
 - `.agent-os/`
@@ -55,6 +59,8 @@ agentos-cli agent init [target]
 - 确认后执行全量覆盖，不做合并
 - 选择 `ignore` 时，只会把忽略规则增量追加到目标项目 `.gitignore` 末尾
 - 选择 `track` 时，只会移除 `agentos-cli` 自己追加的忽略块
+- 注入后的 `AGENTS.md` 优先使用 `Compound Engineering`；如果本机没有全局插件，会按内置降级流程继续工作
+- 同步脚本内部会校验受管文件和项目级 skills 是否生成成功，不额外提供 `doctor/check` 命令
 
 ## 示例
 

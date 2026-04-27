@@ -41,6 +41,14 @@ test('injects full workflow into a clean project', async () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(projectDirectory, 'package.json'), 'utf8'));
   assert.equal(packageJson.scripts['agent-os:sync'], PACKAGE_SYNC_SCRIPT);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.gitignore')), false);
+
+  const agentsContent = fs.readFileSync(path.join(projectDirectory, 'AGENTS.md'), 'utf8');
+  const claudeContent = fs.readFileSync(path.join(projectDirectory, 'CLAUDE.md'), 'utf8');
+  assert.match(agentsContent, /内置降级流程/);
+  assert.match(agentsContent, /项目上下文初始化/);
+  assert.match(agentsContent, /Spec \/ Task 约定/);
+  assert.match(claudeContent, /优先使用 `Compound Engineering`/);
+  assert.match(claudeContent, /内置降级流程/);
 });
 
 test('aborts when overwrite is rejected', async () => {
@@ -130,6 +138,26 @@ test('prompts for git mode when it is not provided', async () => {
 
   assert.equal(result.gitMode, 'ignore');
   assert.equal(fs.existsSync(path.join(projectDirectory, '.gitignore')), true);
+});
+
+test('warns that ignore mode is for personal temporary workflows', async () => {
+  const projectDirectory = createTempProject();
+  const logs = [];
+  const originalLog = console.log;
+
+  console.log = (message) => {
+    logs.push(String(message));
+  };
+
+  try {
+    const result = await agentInit(projectDirectory, { preset: 'vue', force: true, gitMode: 'ignore' });
+    assert.equal(result.gitMode, 'ignore');
+  }
+  finally {
+    console.log = originalLog;
+  }
+
+  assert.match(logs.join('\n'), /团队项目通常建议提交 AI 工作流文件/);
 });
 
 function escapeRegExp(value) {
