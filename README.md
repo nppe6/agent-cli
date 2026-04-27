@@ -18,6 +18,27 @@ npm link
 
 全局安装后可使用 `agentos-cli`，如 PowerShell 拦截可改用 `agentos-cli.cmd`。
 
+## 更新全局包
+
+如果是通过 npm 全局安装，使用以下命令更新到最新版本：
+
+```bash
+npm install -g agentos-cli@latest
+```
+
+更新后确认版本：
+
+```bash
+agentos-cli -v
+```
+
+如果是本地开发时通过 `npm link` 链接的版本，需要先更新本仓库代码，再重新安装依赖并链接：
+
+```bash
+npm install
+npm link
+```
+
 ## 命令
 
 ```bash
