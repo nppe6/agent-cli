@@ -6,3 +6,5 @@
 
 - `.claude/skills/`
 - `.codex/skills/`
+
+这些项目级 skills 是脚手架自带的本地兜底能力，不依赖用户提前安装全局 `Compound Engineering` 插件。同步脚本成功结束后，Agent 就可以直接按目录中的 `SKILL.md` 加载对应能力。
