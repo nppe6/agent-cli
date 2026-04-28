@@ -28,6 +28,16 @@
 
 同步脚本内部会校验多工具模式的受管路径是否生成成功；命令成功结束且不报错，即表示本地项目级规则和 skills 已经就位。无需额外提供 `agent-os:doctor` 或 `agent-os:check` 命令。
 
+## skills 迁移
+
+需要把其他项目的本地 skills 迁移进来时，使用：
+
+```bash
+agentos-cli agent skills import <source>
+```
+
+默认增量导入，同名 skill 会跳过；需要覆盖时加 `--mode overwrite`。导入完成后执行 `pnpm agent-os:sync`，把 `.agent-os/skills/` 同步到已启用的 Agent 工具目录。
+
 ## Compound Engineering 依赖边界
 
 `Compound Engineering` 是优先使用的全局增强流程，不是这个脚手架的硬依赖。

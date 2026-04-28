@@ -45,11 +45,13 @@ npm link
 agentos-cli -h
 agentos-cli -v
 agentos-cli agent init [target]
+agentos-cli agent skills import <source> [target]
 ```
 
 - `-h, --help`：查看帮助
 - `-v, --version`：查看版本
 - `agent init`：按选择向目标项目注入 AI 工作流
+- `agent skills import`：把已有项目级 skills 快速迁移到目标项目
 
 ## 参数
 
@@ -95,4 +97,26 @@ agentos-cli agent init -t D:\work\easy\test --tools codex --git-mode track
 agentos-cli agent init -t D:\work\easy\test --tools claude --git-mode track
 agentos-cli agent init -t D:\work\easy\test --tools codex,claude --git-mode track
 agentos-cli agent init -t D:\work\easy\test --git-mode ignore --force
+```
+
+## 项目级 skills 迁移
+
+如果把这个工具分享给其他人使用，对方项目里可能已经有自己的本地 skills。可以用迁移命令把单个 skill 目录或一整个 skills 目录导入到当前脚手架生成的项目结构中：
+
+```bash
+agentos-cli agent skills import <source> [target]
+```
+
+- `<source>`：已有 skill 目录，或包含多个 skill 子目录的 skills 根目录；每个 skill 目录需要包含 `SKILL.md`
+- `[target]` / `-t, --target <path>`：目标项目目录，默认当前目录
+- `--mode <skip|overwrite>`：导入模式，默认 `skip`，已有同名 skill 时跳过
+- `-f, --force`：等价于 `--mode overwrite`
+- `--to <auto|agent-os|codex|claude>`：导入目标，默认 `auto`
+
+`auto` 模式下，如果目标项目存在 `.agent-os/skills`，会优先导入到这里，适合多工具统一管理；导入后再执行 `pnpm agent-os:sync` 同步到已启用工具目录。单工具项目没有 `.agent-os/` 时，会导入到已存在的 `.codex/skills` 或 `.claude/skills`。
+
+```bash
+agentos-cli agent skills import D:\old-project\.claude\skills -t D:\work\easy\test
+agentos-cli agent skills import D:\skills\ui-ux-pro-max -t D:\work\easy\test --mode overwrite
+agentos-cli agent skills import D:\shared-skills -t D:\work\easy\test --to codex
 ```
