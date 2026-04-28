@@ -5,7 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const agentInit = require('../lib/actions/agent-init');
-const { renderGeneratedTree, selectTools } = agentInit._private;
+const { renderGeneratedTree, renderTree, selectTools } = agentInit._private;
 const { PACKAGE_SYNC_SCRIPT } = require('../lib/utils/agent-os');
 const {
   GITIGNORE_BLOCK_END,
@@ -293,6 +293,13 @@ test('tool prompt starts with no default selections and concise labels', async (
   assert.equal(capturedQuestions[0].type, 'checkbox');
   assert.deepEqual(capturedQuestions[0].choices.map((choice) => choice.name), ['Codex', 'Claude Code']);
   assert.equal(capturedQuestions[0].choices.some((choice) => choice.checked), false);
+});
+
+test('renders simple CLI lists as a readable tree', () => {
+  assert.equal(renderTree(['codex', 'claude']), [
+    '├─ codex',
+    '└─ claude'
+  ].join('\n'));
 });
 
 test('renders generated file summary as a readable tree', () => {

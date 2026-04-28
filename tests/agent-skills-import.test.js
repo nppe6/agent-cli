@@ -5,7 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const importSkills = require('../lib/actions/agent-skills-import');
-const { renderTree } = importSkills._private;
+const { renderResultTree, renderTree } = importSkills._private;
 
 function createTempProject() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'agentos-cli-skills-'));
@@ -50,6 +50,16 @@ test('renders discovered skills as a readable tree', () => {
     '├─ alpha',
     '├─ beta',
     '└─ gamma'
+  ].join('\n'));
+});
+
+test('renders import results as a readable tree', () => {
+  assert.equal(renderResultTree([
+    { skill: 'alpha', destination: 'codex' },
+    { skill: 'beta', destination: 'codex' }
+  ]), [
+    '├─ alpha -> codex',
+    '└─ beta -> codex'
   ].join('\n'));
 });
 
