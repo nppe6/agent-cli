@@ -115,6 +115,8 @@ agentos-cli agent skills import <source> [target]
 
 `auto` 模式下，如果目标项目存在 `.agent-os/skills`，会优先导入到这里，适合多工具统一管理；导入后再执行 `pnpm agent-os:sync` 同步到已启用工具目录。单工具项目没有 `.agent-os/` 时，会导入到已存在的 `.codex/skills` 或 `.claude/skills`。
 
+推荐先执行 `agent init` 再执行 `agent skills import`，这样 `auto` 可以自动识别当前项目结构；如果需要在未初始化项目中提前导入 skills，则必须显式指定 `--to agent-os`、`--to codex` 或 `--to claude`。
+
 ```bash
 agentos-cli agent skills import D:\old-project\.claude\skills -t D:\work\easy\test
 agentos-cli agent skills import D:\skills\ui-ux-pro-max -t D:\work\easy\test --mode overwrite
