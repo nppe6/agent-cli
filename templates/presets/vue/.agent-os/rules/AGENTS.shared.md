@@ -3,8 +3,9 @@
 - 主流程优先使用 `Compound Engineering`。
 - 如果本机 Codex / Claude Code 未安装或无法读取 `Compound Engineering` 全局插件，不中断任务；按本文档的内置降级流程执行，并明确提示用户当前处于降级模式。
 - 先判定任务类型，再决定流程与需加载的项目级 skills。
-- 命中多个 skills 时必须组合加载，并在该任务后续步骤持续生效。
-- 如果某个命中的项目级必需 skill 缺失或无法读取，必须立即中断，明确提示缺失 skill，并让用户选择如何继续。
+- 命中多个 skills 时，先选 1 个主 skill，再按当前步骤补充 0-2 个辅助 skills；其余只按需查阅对应 reference，不要求整包常驻加载。
+- 引用 `Compound Engineering` 时使用精确 skill 名称，例如 `compound-engineering:ce-brainstorm`、`compound-engineering:ce-plan`、`compound-engineering:ce-work`、`compound-engineering:ce-code-review`、`compound-engineering:ce-compound`，避免使用 `ce:review` 这类模糊简称。
+- 如果某个当前步骤必需的项目级 skill 缺失或无法读取，必须立即中断，明确提示缺失 skill，并让用户选择如何继续。
 - 不能只口头声明已进入某个流程或已加载某个 skill；必须实际读取并遵守对应 `SKILL.md` 的关键步骤。若因环境限制无法读取，必须说明并走降级流程。
 - 本文件只定义通用工作流和强制闸门；前端、Vue、测试、调试等专项细节以下方命中的项目级 skill 为准。
 
@@ -47,20 +48,20 @@
 
 1. 新增功能、页面、模块开发
    - 先判断是否属于小改动。
-   - 若需求不清晰，或不属于小改动，先通过“需求与计划闸门”；优先用 `ce:brainstorm` / `ce:plan`，不可用时按“内置降级流程”的需求澄清和任务拆分步骤执行。
+   - 若需求不清晰，或不属于小改动，先通过“需求与计划闸门”；优先用 `compound-engineering:ce-brainstorm` / `compound-engineering:ce-plan`，不可用时按“内置降级流程”的需求澄清和任务拆分步骤执行。
    - 按命中规则加载项目级 skills。
-   - 再优先进入 `ce:work`、`ce:review`、`ce:compound`；不可用时按“内置降级流程”的实现、自检、沉淀步骤执行。
+   - 再优先进入 `compound-engineering:ce-work`；如需正式代码评审或合并前复查，再用 `compound-engineering:ce-code-review`；需要沉淀时用 `compound-engineering:ce-compound`。不可用时按“内置降级流程”的实现、自检、沉淀步骤执行。
 2. `bugfix`、报错排查、小范围修复
    - 默认先走小改动判定。
-   - 若问题范围不清晰，或不属于小改动，优先用 `ce:brainstorm`；不可用时按“内置降级流程”的问题澄清步骤执行。
-   - 必载 `test-driven-development`，并按命中场景补测试/调试类 skills。
-   - 再优先进入 `ce:work`、`ce:review`、`ce:compound`；不可用时按“内置降级流程”的实现、自检、沉淀步骤执行。
+   - 若问题范围不清晰，或不属于小改动，优先用 `compound-engineering:ce-brainstorm`；不可用时按“内置降级流程”的问题澄清步骤执行。
+   - 涉及逻辑缺陷、数据转换错误、回归风险较高的行为变更时，优先加载 `test-driven-development`，并按命中场景补测试/调试类 skills；纯样式、纯文案、纯配置、小型脚本修复不强制先写 failing test，但仍需补足定向验证。
+   - 再优先进入 `compound-engineering:ce-work`；如需正式代码评审或合并前复查，再用 `compound-engineering:ce-code-review`；需要沉淀时用 `compound-engineering:ce-compound`。不可用时按“内置降级流程”的实现、自检、沉淀步骤执行。
 
 ## 小改动判定
 
-- 仅涉及代码文件。
+- 仅涉及单一目标的少量文件，可包含代码、样式、测试、文案或局部配置。
 - 仅统计新增或修改后的实际代码行数，不计删除。
-- 新增/修改总计不超过 50 行。
+- 新增/修改总计不超过 80 行；若主要是样式、文案或测试胶水调整，可在不触发架构变更的前提下按小改动处理。
 - 改动目标明确，无额外需求澄清。
 - 若涉及架构、跨模块、API/数据结构、状态管理、路由、权限、公共组件、共享基础设施、脚手架/构建配置，或验收标准不明确，则不能按小改动处理。
 
@@ -74,7 +75,7 @@
 ## 项目级 skills 触发
 
 - 设计稿 / MasterGo / 视觉还原 / 切图 / 设计转代码：`mastergo-to-code`
-- UI/UX / 页面设计 / 视觉优化 / 交互体验 / 响应式 / 可访问性 / 表单表格图表体验：`ui-ux-pro-max`
+- UI/UX / 页面设计 / 视觉优化 / 交互体验 / 响应式 / 可访问性 / 表单表格图表体验：`ui-ux-pro-max`。在 Vue preset 中默认只采用其中通用 Web / Vue 规则；若读到 `React Native`、`App UI only`、`safe area`、`Pressable`、手势等移动端专属条目，仅在跨端容器或移动 App 场景适用。
 - Vue 开发默认：`vue-best-practices`
 - Vue 路由：`vue-router-best-practices`
 - Vue 状态管理：`vue-pinia-best-practices`
@@ -165,6 +166,6 @@
 ## 补充
 
 - 用户明确要求专项流程时，专项规则优先于默认小改动路径。
-- 只要用户请求、文件路径、代码片段、报错信息、目录结构或上下文中出现命中条件，都视为触发。
+- 只有当用户请求、文件路径、代码片段、报错信息、目录结构或上下文中的命中条件与当前任务直接相关时，才视为触发；默认选择 1 个主 skill，最多再加 2 个辅助 skills。
 - 具体专项细则以对应项目级 skill 的 `SKILL.md` 为准。
 - 如果项目存在专门的 Agent 规则维护文档，以该文档为规则真源；否则以当前工具入口文件为准。
