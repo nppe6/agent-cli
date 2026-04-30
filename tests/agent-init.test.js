@@ -111,7 +111,7 @@ test('overwrites existing workflow files after confirmation', async () => {
   );
 
   assert.equal(result.aborted, false);
-  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'legacy.txt')), false);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'legacy.txt')), true);
 
   const agentsContent = fs.readFileSync(path.join(projectDirectory, 'AGENTS.md'), 'utf8');
   assert.match(agentsContent, /Compound Engineering/);
@@ -280,6 +280,7 @@ test('reinitializing from both tools to codex removes unselected managed files',
   const originalLog = console.log;
 
   await agentInit(projectDirectory, { stack: 'vue', force: true, gitMode: 'track', tools: ['codex', 'claude'] });
+  fs.writeFileSync(path.join(projectDirectory, '.claude', 'custom-command.md'), 'custom', 'utf8');
 
   console.log = (message) => {
     logs.push(String(message));
@@ -295,7 +296,8 @@ test('reinitializing from both tools to codex removes unselected managed files',
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'CLAUDE.md')), false);
-  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude')), false);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'custom-command.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'skills')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.agent-os')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'scripts', 'sync-agent-os.ps1')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'scripts')), false);

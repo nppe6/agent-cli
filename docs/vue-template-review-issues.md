@@ -1,11 +1,11 @@
 # Vue Template 审查问题清单
 
-本文记录对 `templates/presets/vue` 当前 template 的审查发现，供后续逐项修复。审查范围包括共享规则、项目级 skills、同步脚本、CLI 注入逻辑、测试和发布包范围。
+本文记录对 `templates/stacks/vue/.agent-os` 当前 template 的审查发现，供后续逐项修复。审查范围包括共享规则、项目级 skills、CLI 同步逻辑、测试和发布包范围。
 
 ## 高优先级
 
 - [ ] `mastergo-to-code` 在 Codex-only 安装后路径不可用
-  - 证据：`lib/utils/agent-os.js` 中 Codex 单工具只生成 `.codex/skills`；但 `templates/presets/vue/.agent-os/skills/mastergo-to-code/SKILL.md` 的命令示例硬编码 `.claude/skills/mastergo-to-code/index.ts`。
+  - 证据：Codex 投影生成到 `.codex/skills`；但 `templates/stacks/vue/.agent-os/skills/mastergo-to-code/SKILL.md` 的命令示例硬编码 `.claude/skills/mastergo-to-code/index.ts`。
   - 影响：只安装 Codex 的用户触发 MasterGo skill 后会直接找不到文件。
   - 建议：移除 `.claude` 硬编码，改为当前 skill 目录相对路径，或分别给出 Codex/Claude 路径。
 
@@ -14,10 +14,10 @@
   - 影响：干净 Vue 项目会缺 `tsx`、`dotenv`、`minio` 或缺 `.env.local` OSS 配置而失败。
   - 建议：明确依赖安装方式；或将资源处理改成不强依赖 OSS，先本地落盘，大图上传作为可选路径。
 
-- [x] 同步脚本会删除工具 skills 目录中的额外 skill，但文档说明不足
-  - 证据：`scripts/sync-agent-os.ps1` 的 `Remove-StaleEntries` 会镜像清理 `.claude/skills` 和 `.codex/skills` 中源目录不存在的条目；`.agent-os/README.md` 表述为不会主动清理 `.claude/`、`.codex/` 下额外文件，容易误导。
-  - 影响：用户手动放在 `.codex/skills` 或 `.claude/skills` 的团队 skill 可能被 `pnpm agent-os:sync` 删除。
-  - 建议：文档明确“skills 目录是镜像目录”；要求自定义 skill 先导入 `.agent-os/skills`，再同步。
+- [x] 旧同步脚本会删除工具 skills 目录中的额外 skill，但文档说明不足
+  - 证据：旧版 `scripts/sync-agent-os.ps1` 的 `Remove-StaleEntries` 会镜像清理 `.claude/skills` 和 `.codex/skills` 中源目录不存在的条目；当前版本已改为 `agentos-cli agent sync`。
+  - 影响：旧版项目中用户手动放在 `.codex/skills` 或 `.claude/skills` 的团队 skill 可能被 `pnpm agent-os:sync` 删除。
+  - 建议：文档明确当前 canonical 命令是 `agentos-cli agent sync`；自定义 skill 应先导入 `.agent-os/skills`，再同步。
 
 - [ ] `ui-ux-pro-max` 在 Vue preset 中仍以 React Native 为默认栈
   - 证据：`AGENTS.shared.md` 限定 Vue preset 只采用通用 Web/Vue 规则；但 `ui-ux-pro-max/SKILL.md` 内存在 `React Native (this project's only tech stack)`、`--stack react-native`、App UI checklist 等主流程内容。
@@ -53,10 +53,10 @@
 
 ## 低优先级
 
-- [ ] 同步命令文档默认只写 `pnpm agent-os:sync`
-  - 证据：`.agent-os/README.md` 多处要求执行 `pnpm agent-os:sync`；实际 package script 不依赖 pnpm。
+- [x] Vue stack 内部同步命令文档仍残留 `pnpm agent-os:sync`
+  - 证据：此前 `templates/stacks/vue/.agent-os/README.md` 和 `templates/stacks/vue/.agent-os/skills/README.md` 多处要求执行 `pnpm agent-os:sync`；当前 canonical 命令应为 `agentos-cli agent sync`。
   - 影响：npm/yarn 项目或未安装 pnpm 的机器上，用户可能不知道替代命令。
-  - 处理：大版本重构后不再生成 `sync-agent-os.ps1`，也不再写入 `scripts.agent-os:sync`；后续同步应由 CLI 命令实现。
+  - 处理：已改为 `agentos-cli agent sync`；大版本重构后不再生成 `sync-agent-os.ps1`，也不再写入 `scripts.agent-os:sync`。
 
 - [ ] `ui-ux-pro-max` 能力数量描述漂移
   - 证据：`SKILL.md` 写 `10 stacks`，平台模板和实际 `data/stacks` 显示 16 个 stack。

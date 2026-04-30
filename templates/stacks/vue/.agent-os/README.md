@@ -1,21 +1,23 @@
 # Agent OS
 
-`.agent-os` 只在多工具注入模式下生成，是 Claude 和 Codex 工作流文件的唯一项目级源目录。
-
-单选 Codex 或单选 Claude Code 时，不生成 `.agent-os` 和同步脚本；对应工具入口文件会直接承载所需规则。
+`.agent-os` 是 Claude 和 Codex 工作流文件的唯一项目级源目录。单选 Codex、单选 Claude Code、或同时选择多个工具时都会生成。
 
 ## 管理内容
 
 - `rules/AGENTS.shared.md`
-  - 多工具模式下共享规则的唯一真源
+  - 共享规则的唯一真源
 - `templates/CLAUDE.md`
   - 面向 Claude 的精简入口模板
 - `skills/`
-  - 多工具模式下的项目级 skills，同步脚本会同步到 `.claude/skills/` 和 `.codex/skills/`
+  - 项目级 skills，`agentos-cli agent sync` 会同步到已启用工具的 skills 目录
 
 ## 同步方式
 
-多工具模式下，修改 `.agent-os` 下任意文件后，执行 `pnpm agent-os:sync`。
+修改 `.agent-os` 下任意文件后，执行：
+
+```bash
+agentos-cli agent sync
+```
 
 同步命令会更新：
 
@@ -24,9 +26,13 @@
 - `.claude/skills/`
 - `.codex/skills/`
 
-脚本只管理这些路径，会原地覆盖受管文件；不会主动清理其他工具将来在 `.claude/`、`.codex/` 下创建的额外文件。
+同步命令只管理这些投影路径。`--dry-run` 会预览 create/update/unchanged/user-modified/conflict 等状态；实际同步会跳过用户修改和冲突文件。
 
-同步脚本内部会校验多工具模式的受管路径是否生成成功；命令成功结束且不报错，即表示本地项目级规则和 skills 已经就位。无需额外提供 `agent-os:doctor` 或 `agent-os:check` 命令。
+如需只读检查安装状态，执行：
+
+```bash
+agentos-cli agent doctor
+```
 
 ## skills 迁移
 
@@ -36,7 +42,7 @@
 agentos-cli agent skills import <source>
 ```
 
-未指定 `--mode` 时会先确认导入位置，再选择增量或覆盖；需要直接覆盖时加 `--mode overwrite`。导入完成后执行 `pnpm agent-os:sync`，把 `.agent-os/skills/` 同步到已启用的 Agent 工具目录。
+未指定 `--mode` 时会先确认导入位置，再选择增量或覆盖；需要直接覆盖时加 `--mode overwrite`。导入完成后执行 `agentos-cli agent sync`，把 `.agent-os/skills/` 同步到已启用的 Agent 工具目录。
 
 ## Compound Engineering 依赖边界
 

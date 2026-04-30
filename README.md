@@ -29,6 +29,8 @@ agentos-cli -v
 
 ```bash
 agentos-cli agent init [target]
+agentos-cli agent doctor [target]
+agentos-cli agent sync [target]
 agentos-cli agent skills import <source> [target]
 ```
 
@@ -57,7 +59,7 @@ agentos-cli agent init -t D:\work\easy\test --stack core --tools codex --git-mod
 
 - Codex：`AGENTS.md`、`.codex/skills/`
 - Claude Code：`CLAUDE.md`、`.claude/skills/`
-- 多工具统一源：`.agent-os/`
+- 统一源：`.agent-os/`（单工具和多工具安装都会生成）
 
 说明：
 
@@ -65,6 +67,27 @@ agentos-cli agent init -t D:\work\easy\test --stack core --tools codex --git-mod
 - 当前版本不再生成 `scripts/sync-agent-os.ps1`，也不再写入 `package.json` 的 `scripts.agent-os:sync`。
 - 如果目标项目存在旧版 `scripts/sync-agent-os.ps1` 或 `scripts.agent-os:sync`，重新初始化时会作为旧受管内容清理。
 - `track` 适合团队共享规则；`ignore` 更适合个人临时增强。
+
+## `agent doctor`
+
+只读检查目标项目的 Agent OS 安装状态。
+
+```bash
+agentos-cli agent doctor -t D:\work\easy\test
+```
+
+检查内容包括 `.agent-os/manifest.json`、`.agent-os/template-hashes.json`、共享规则、skills 目录，以及 manifest 中启用工具的投影文件。
+
+## `agent sync`
+
+从 `.agent-os/` 重新生成已启用工具的投影文件。
+
+```bash
+agentos-cli agent sync -t D:\work\easy\test --dry-run
+agentos-cli agent sync -t D:\work\easy\test --tools codex
+```
+
+`--dry-run` 会预览 `create`、`update`、`unchanged`、`user-modified`、`conflict` 等状态。实际同步会跳过用户修改和冲突文件，避免盲目覆盖。
 
 ## `agent skills import`
 

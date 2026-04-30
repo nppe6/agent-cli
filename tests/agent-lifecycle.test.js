@@ -82,6 +82,97 @@ test('sync dry-run reports missing projection files without writing them', async
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), false);
 });
 
+test('sync dry-run classifies clean generated files as unchanged', async () => {
+  const projectDirectory = createTempProject();
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.dryRun, true);
+  assert.equal(result.changes.some((change) => change.path === 'AGENTS.md' && change.status === 'unchanged'), true);
+});
+
+test('sync dry-run classifies clean files as update when source changes', async () => {
+  const projectDirectory = createTempProject();
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.appendFileSync(path.join(projectDirectory, '.agent-os', 'rules', 'AGENTS.shared.md'), '\nNew source rule.\n', 'utf8');
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.changes.some((change) => change.path === 'AGENTS.md' && change.status === 'update'), true);
+});
+
+test('sync dry-run classifies user-modified projection files without writing them', async () => {
+  const projectDirectory = createTempProject();
+  const agentsPath = path.join(projectDirectory, 'AGENTS.md');
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.appendFileSync(agentsPath, '\nUser local note.\n', 'utf8');
+  const before = fs.readFileSync(agentsPath, 'utf8');
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.changes.some((change) => change.path === 'AGENTS.md' && change.status === 'user-modified'), true);
+  assert.equal(fs.readFileSync(agentsPath, 'utf8'), before);
+});
+
+test('sync dry-run classifies projection conflicts when source and user file both changed', async () => {
+  const projectDirectory = createTempProject();
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.appendFileSync(path.join(projectDirectory, '.agent-os', 'rules', 'AGENTS.shared.md'), '\nNew source rule.\n', 'utf8');
+  fs.appendFileSync(path.join(projectDirectory, 'AGENTS.md'), '\nUser local note.\n', 'utf8');
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.changes.some((change) => change.path === 'AGENTS.md' && change.status === 'conflict'), true);
+});
+
+test('sync skips user-modified projection files during writes', async () => {
+  const projectDirectory = createTempProject();
+  const agentsPath = path.join(projectDirectory, 'AGENTS.md');
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.appendFileSync(agentsPath, '\nUser local note.\n', 'utf8');
+  const before = fs.readFileSync(agentsPath, 'utf8');
+
+  const result = await runSilently(() => agentSync(projectDirectory));
+
+  assert.deepEqual(result.skippedPaths, ['AGENTS.md']);
+  assert.equal(fs.readFileSync(agentsPath, 'utf8'), before);
+});
+
 test('sync regenerates missing projection files from .agent-os', async () => {
   const projectDirectory = createTempProject();
 

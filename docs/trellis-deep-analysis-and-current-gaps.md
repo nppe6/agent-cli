@@ -87,6 +87,8 @@ However, implementation is still structurally closer to a template copier than a
 Current command surface:
 
 - `agentos-cli agent init`
+- `agentos-cli agent doctor`
+- `agentos-cli agent sync`
 - `agentos-cli agent skills import`
 
 Current implementation hotspots:
@@ -132,31 +134,30 @@ Recommendation:
 - replace `TOOL_LAYOUTS` with a tool registry that includes `entryFile`, `rootDirectory`, `skillsDirectory`, optional paths, managed paths, and projection functions.
 - require each adapter to expose `collectTemplates()` or equivalent so update and dry-run can reason about generated files.
 
-### 3. No Hash-Based Update Safety
+### 3. Hash-Based Sync Safety Exists, Update Safety Is Next
 
-`templates/core/.agent-os/manifest.template.json` exists, but init does not write a real manifest or template hash record. Conflict handling is still path-level overwrite confirmation.
+Init writes `.agent-os/manifest.json` and `.agent-os/template-hashes.json`, and `agent sync --dry-run` uses those hashes to classify projection files as create, unchanged, update, user-modified, or conflict. This brings sync closer to Trellis' generated-file safety model.
 
 Risk:
 
-- future update cannot distinguish user modifications from template changes.
-- `--force` can wipe entire managed directories.
-- sync/update behavior will become unsafe as soon as users edit generated `AGENTS.md`, `CLAUDE.md`, or skills.
+- `agent update --dry-run` does not exist yet, so template upgrades still need a dedicated safety path.
+- hash records can become misleading if future commands update hashes for skipped user-modified files.
+- broader migrations will still need protected-path and backup behavior.
 
 Recommendation:
 
-- add `.agent-os/template-hashes.json` or `.agent-os/.template-hashes.json`.
-- normalize line endings before hashing.
-- store POSIX-style relative paths even on Windows.
-- hash only managed generated files; exclude user source data such as specs, tasks, workspace, and local identity.
+- keep `.agent-os/template-hashes.json` as the generated-file safety record.
+- preserve old hashes when sync skips user-modified or conflict files.
+- use the same classification model for future `agent update --dry-run`.
 
-### 4. Conflict Handling Is Directory-Destructive
+### 4. Conflict Handling Must Stay File-Level
 
-`agent-init` removes whole conflict targets such as `.claude`, `.codex`, and `.agent-os` before copying templates. This is acceptable for a first scaffold prototype, but not for a maintainable Agent OS CLI.
+`agent-init` should remove only files known to be managed by manifest/hash metadata, then regenerate projections. Whole-directory deletion of `.claude`, `.codex`, or `.agent-os` is not acceptable once users can add their own skills, commands, prompts, hooks, or settings.
 
 Risk:
 
-- user-added skills, commands, prompts, hooks, or local settings under managed roots can be deleted.
-- reinitializing from two tools to one tool removes `.agent-os`, which undermines the source-of-truth model.
+- regressions can reintroduce deletion of user-added skills, commands, prompts, hooks, or local settings under managed roots.
+- reinitializing from two tools to one tool must remove only generated projection files for the unselected tool.
 - future tool adapters cannot protect non-owned files inside a managed root.
 
 Recommendation:
@@ -165,20 +166,20 @@ Recommendation:
 - keep managed file lists in manifest/hash metadata.
 - delete stale files only when they are hash-verified clean generated files or when the user explicitly confirms.
 
-### 5. Existing Plan Mentions Commands That Do Not Exist Yet
+### 5. Lifecycle Commands Exist, Update Is Still Missing
 
-The current refactor plan correctly names `sync`, `doctor`, and `update`, but the CLI currently exposes only `init` and `skills import`.
+The current CLI now exposes `doctor` and `sync`, including hash-based `sync --dry-run` classification. That corrects the earlier command-surface gap for day-to-day projection regeneration, but update behavior is still not implemented.
 
 Risk:
 
-- architecture docs are ahead of implementation.
-- next contributors may implement template moves without creating the safety commands those moves depend on.
+- contributors may treat sync safety as equivalent to full template update safety.
+- user-edited generated files may still be at risk if future update paths do not reuse the sync hash model.
 
 Recommendation:
 
-- implement `doctor` before broad update behavior.
-- implement `sync --dry-run` before destructive sync.
-- implement `update --dry-run` before normal `update`.
+- keep `doctor` read-only.
+- keep `sync --dry-run` as the reference implementation for hash classification.
+- implement `update --dry-run` with the same user-modified/conflict behavior before normal update.
 
 ### 6. Template Metadata Is Not Used
 
@@ -256,8 +257,8 @@ Implement the next phase in this order:
 1. Install `.agent-os` consistently as source of truth. Done in the first lifecycle foundation pass.
 2. Add manifest and template hash tracking. Done in the first lifecycle foundation pass.
 3. Add a tool registry that drives projection and managed file lists. Partially done: tool layouts now expose managed paths, but projection ownership should still move behind richer adapters.
-4. Add `agent doctor` as a read-only consistency check. Done in the first lifecycle foundation pass.
-5. Add `agent sync --dry-run`, then `agent sync`. Done in the first lifecycle foundation pass.
+4. Add `agent doctor` as a read-only consistency check. Basic command exists.
+5. Add `agent sync --dry-run`, then `agent sync`. Basic command and hash-based user-modified/conflict classification exist.
 6. Only after sync is safe, add `agent update --dry-run`.
 
 This keeps the project lightweight while borrowing the Trellis parts that matter most.

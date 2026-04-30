@@ -38,13 +38,15 @@ The most important gaps before the next implementation phase:
 
 Therefore, the next phase should prioritize lifecycle safety over more template expansion.
 
-First lifecycle foundation changes have now landed in code:
+First lifecycle foundation commands have now landed in code:
 
 - `agent init` always writes `.agent-os` as the source of truth, even when only one tool is selected.
 - init writes `.agent-os/manifest.json` and `.agent-os/template-hashes.json`.
 - tool layouts now expose managed paths for future projection/update ownership.
 - `agent doctor` provides a read-only installation health check.
-- `agent sync --dry-run` previews projection regeneration, and `agent sync` regenerates selected tool projections from `.agent-os`.
+- `agent sync --dry-run` classifies create/update/unchanged/user-modified/conflict states through recorded hashes.
+- `agent sync` regenerates selected tool projections from `.agent-os` and skips user-modified or conflict files.
+- Remaining gap: future `agent update --dry-run` must reuse the same safety model before normal update exists.
 
 ## Product Direction
 
@@ -52,7 +54,7 @@ First lifecycle foundation changes have now landed in code:
 
 > A lightweight CLI that initializes and maintains an Agent OS layer for an existing project, with a shared `.agent-os` source, optional stack skill packs, and platform-specific projections for Codex, Claude Code, and future tools.
 
-This means the project should stop treating `templates/presets/vue` as the root design. Vue should become one installable stack pack layered on top of a core Agent OS template.
+This means the project should keep Vue as one installable stack pack layered on top of a core Agent OS template, rather than returning to the old `templates/presets/vue` root design.
 
 ## Non-Goals
 
@@ -64,7 +66,7 @@ This means the project should stop treating `templates/presets/vue` as the root 
 
 ## Target Template Architecture
 
-Replace the current preset-first layout:
+The old preset-first layout was:
 
 ```text
 templates/presets/vue/
@@ -212,9 +214,9 @@ Recommended `agentos-cli init` flow:
 6. Confirm and apply.
 
 7. Show next steps:
-   - `agentos-cli doctor`
-   - `agentos-cli sync`
-   - `agentos-cli update --dry-run`
+   - `agentos-cli agent doctor`
+   - `agentos-cli agent sync`
+   - `agentos-cli agent update --dry-run`
 
 The important behavior is: detect first, recommend second, preview third, write last.
 
@@ -223,23 +225,23 @@ The important behavior is: detect first, recommend second, preview third, write 
 First implementation target:
 
 ```bash
-agentos-cli init
-agentos-cli sync
-agentos-cli doctor
-agentos-cli update --dry-run
-agentos-cli update
-agentos-cli skills list
-agentos-cli skills add vue
+agentos-cli agent init
+agentos-cli agent sync
+agentos-cli agent doctor
+agentos-cli agent update --dry-run
+agentos-cli agent update
+agentos-cli agent skills list
+agentos-cli agent skills add vue
 ```
 
 Later:
 
 ```bash
-agentos-cli tools add codex
-agentos-cli tools add claude
-agentos-cli task new <name>
-agentos-cli memory add
-agentos-cli repair
+agentos-cli agent tools add codex
+agentos-cli agent tools add claude
+agentos-cli agent task new <name>
+agentos-cli agent memory add
+agentos-cli agent repair
 ```
 
 ## Template Hash and Manifest Design
@@ -315,7 +317,7 @@ The current `scripts/sync-agent-os.ps1` should not remain the primary synchroniz
 
 Preferred model:
 
-- `agentos-cli sync` is the canonical sync command.
+- `agentos-cli agent sync` is the canonical sync command.
 - It reads `.agent-os/manifest.json` and installed stack/tool metadata.
 - It regenerates platform projections through tool adapters.
 - It updates hash records after successful writes.
@@ -417,7 +419,7 @@ Files likely affected:
 
 Decision:
 
-Make `agentos-cli sync` the canonical way to regenerate platform projections. Do not keep a generated PowerShell sync script; old `scripts/sync-agent-os.ps1` should be treated as legacy managed content and removed during major-version initialization.
+Make `agentos-cli agent sync` the canonical way to regenerate platform projections. Do not keep a generated PowerShell sync script; old `scripts/sync-agent-os.ps1` should be treated as legacy managed content and removed during major-version initialization.
 
 Test scenarios:
 
@@ -449,7 +451,7 @@ Test scenarios:
 
 This refactor is intended for a major npm release, so compatibility with the old preset layout is not required.
 
-1. Remove `templates/presets/vue`.
+1. Keep `templates/presets/vue` removed.
 2. Use `templates/core` as the default install source.
 3. Use `templates/stacks/vue` when `--stack vue` is selected.
 4. Remove the `--preset` CLI option.
@@ -472,14 +474,14 @@ Run after each implementation phase:
 - Init into a temporary fixture project with Codex only.
 - Init into a temporary fixture project with Claude only.
 - Init into a temporary fixture project with Codex plus Claude plus Vue stack.
-- Run `agentos-cli doctor` against generated fixtures.
+- Run `agentos-cli agent doctor` against generated fixtures.
 - Run `agentos-cli update --dry-run` after editing a generated file to confirm conflict detection.
 
 ## Open Questions
 
 - Should `.agent-os/template-hashes.json` be tracked by Git, or treated as local install metadata?
 - Should generated platform projections be tracked by Git by default, or should only `.agent-os` be tracked?
-- Should `agentos-cli sync` ever delete stale platform files automatically, or only report them?
+- Should `agentos-cli agent sync` ever delete stale platform files automatically, or only report them?
 - Should stack packs be installed into `.agent-os/stacks/<name>` or merged into `.agent-os/skills` and `.agent-os/specs`?
 - Should the first release include `update`, or should `doctor` and `sync` land first?
 
