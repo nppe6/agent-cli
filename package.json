@@ -19,6 +19,7 @@
   },
   "files": [
     "bin",
+    "docs/assets",
     "lib",
     "templates",
     "README.md",

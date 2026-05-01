@@ -1,231 +1,367 @@
-# agentos-cli
+<p align="center">
+  <img src="./docs/assets/shelf-logo.png" alt="AgentOS Shelf logo" width="180">
+</p>
 
-把现有项目初始化为 Shelf 风格的 AgentOS 工作区，并生成 Codex / Claude Code 可读取的投影文件。
+<h1 align="center">AgentOS Shelf CLI</h1>
 
-## 适用场景
+<p align="center">
+  把现有项目初始化为 Shelf 风格的 AgentOS 工作区，让 Codex、Claude Code 和未来更多 AI coding 工具共享同一套项目记忆。
+</p>
 
-- 希望在已有项目中注入统一的 AI Agent 工作流。
-- 希望以 `.shelf/` 作为 workflow、spec、task、workspace memory、agents、rules 和 skills 的统一源。
-- 希望让 `AGENTS.md` 保持很薄，把真正的流程、技能和项目记忆放进 Shelf 目录。
-- 希望同一套项目结构先复用到 Codex / Claude Code，后续再谨慎扩展到更多 AI coding 工具。
-- 希望先落地基础工作流，后续再补框架能力包、团队协作规则和更完整的平台集成。
+<p align="center">
+  <a href="https://www.npmjs.com/package/agentos-cli">npm</a>
+  ·
+  <a href="https://github.com/nppe6/agent-cli">GitHub</a>
+  ·
+  <a href="#快速开始">快速开始</a>
+  ·
+  <a href="#命令参考">命令参考</a>
+</p>
+
+<p align="center">
+  <img alt="Node.js >=18" src="https://img.shields.io/badge/node-%3E%3D18-339933">
+  <img alt="Codex" src="https://img.shields.io/badge/Codex-supported-111827">
+  <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-supported-6b46c1">
+</p>
+
+## 什么是 AgentOS Shelf
+
+AgentOS Shelf CLI 是一个面向已有项目的轻量工作流注入工具。它会在项目中创建 `.shelf/` 统一源目录，并从这个目录生成 Codex、Claude Code 等工具可读取的投影文件。
+
+它的核心目标不是替代你的框架、构建工具或团队规范，而是把 AI agent 工作时需要反复读取的上下文沉淀为项目文件：
+
+- 项目规范放在 `.shelf/spec/`
+- 任务生命周期放在 `.shelf/tasks/`
+- 开发者工作记忆放在 `.shelf/workspace/`
+- workflow skills 放在 `.shelf/skills/`
+- research / implement / check agent 定义放在 `.shelf/agents/`
+- 根目录只保留很薄的 `AGENTS.md` / `CLAUDE.md` 入口
+
+## 为什么使用
+
+AI coding 工具很擅长临时推理，但在真实项目里，经常缺少稳定、可复用、可审查的项目上下文。AgentOS Shelf 用文件系统补上这一层。
+
+使用它之后：
+
+- 不需要每次都向 AI 重复说明项目结构、代码风格、任务流程和注意事项。
+- Codex 和 Claude Code 可以从同一份 `.shelf/` 源读取规则，减少工具之间的上下文漂移。
+- 新任务、新成员和新 agent 都可以从 `.shelf/tasks/`、`.shelf/spec/`、`.shelf/workspace/` 接上项目状态。
+- 生成文件和用户内容分层管理，`sync` / `update` 会尽量避免覆盖用户修改。
+- 你可以先用最小 Shelf 工作流跑起来，再逐步补齐项目真实规范。
+
+## 前置要求
+
+- Node.js `>= 18`
+- npm
+- Python 3，且 `python` 或 `python3` 在 PATH 中
+- 一个已有项目目录
+
+Python 主要用于 `.shelf/scripts/` 下的任务、workspace 和 journal 脚本。没有 Python 时，`agent init` 仍可完成，但 `agent task`、`agent developer`、`agent workspace` 会提示环境缺失。
 
 ## 安装
+
+本地开发链接：
 
 ```bash
 npm install
 npm link
 ```
 
-全局安装后可使用：
+验证：
 
 ```bash
-agentos-cli -h
-agentos-cli -v
+agentos-cli --version
+agentos-cli --help
 ```
 
-如果 PowerShell 拦截脚本执行，可改用 `agentos-cli.cmd`。
+如果 PowerShell 拦截脚本执行，可以改用：
 
-## 命令
+```bash
+agentos-cli.cmd --help
+```
+
+## 快速开始
+
+进入你想增强的项目目录：
+
+```bash
+cd D:\work\your-project
+agentos-cli agent init
+```
+
+交互面板会询问：
+
+- 要注入哪些工具：Codex、Claude Code
+- Git 模式：提交到 Git，或追加到 `.gitignore` 作为个人临时增强
+
+初始化完成后运行：
+
+```bash
+agentos-cli agent doctor
+agentos-cli agent developer init Ada
+agentos-cli agent workspace context
+agentos-cli agent task list
+```
+
+一个健康的初始化项目通常会包含：
+
+```text
+.shelf/
+AGENTS.md
+CLAUDE.md
+.codex/
+.claude/
+.agents/skills/
+```
+
+## 初始化后应该做什么
+
+首次初始化会创建一个引导任务：
+
+```text
+.shelf/tasks/00-bootstrap-guidelines/
+```
+
+它的作用是提醒你把真实项目规范补进：
+
+```text
+.shelf/spec/backend/
+.shelf/spec/frontend/
+.shelf/spec/guides/
+```
+
+规范可以使用中文。建议保留路径、命令、代码符号为英文或原样，说明文字按团队习惯书写即可。
+
+## 工作原理
+
+AgentOS Shelf 使用“统一源 + 工具投影”的模型。
+
+```text
+.shelf/
+├─ workflow.md
+├─ config.yaml
+├─ spec/
+├─ tasks/
+├─ workspace/
+├─ skills/
+├─ agents/
+├─ scripts/
+├─ rules/
+└─ templates/
+```
+
+`.shelf/` 是共享源。CLI 会根据 manifest 和工具配置生成：
+
+- Codex：`AGENTS.md`、`.codex/skills/`、`.codex/agents/`、`.agents/skills/`
+- Claude Code：`CLAUDE.md`、`.claude/skills/`、`.claude/agents/`、`.claude/settings.json`、`.claude/hooks/`
+
+根目录文件保持很薄，只负责指向 `.shelf/`。真正的 workflow、规范、任务和项目记忆都留在 Shelf 目录中。
+
+## 核心概念
+
+### Specs
+
+`.shelf/spec/` 存放长期有效的项目规范。它应该描述当前代码库的真实约定，而不是理想化口号。
+
+常见内容：
+
+- 前端技术栈、目录结构、API 请求方式、状态管理
+- 后端约定或“本仓库不包含后端”的说明
+- 跨层复用、测试、错误处理和代码审查指南
+
+### Tasks
+
+`.shelf/tasks/` 存放任务级上下文。每个任务可以包含 PRD、实现记录、检查记录和状态信息。
+
+`agent task` 不在 Node 侧重写任务逻辑，而是透传给 `.shelf/scripts/task.py`。
+
+### Workspace Memory
+
+`.shelf/workspace/` 存放开发者本地工作记忆，例如 session journal。
+
+```bash
+agentos-cli agent developer init Ada
+agentos-cli agent workspace context
+agentos-cli agent workspace add-session --title "Local test" --summary "Verified Shelf commands" --no-commit
+```
+
+### Tool Projections
+
+Codex、Claude Code 读取的文件是投影结果。修改工作流源时，优先修改 `.shelf/`，再通过 `agent sync` 或 `agent update` 重新生成投影。
+
+## 命令参考
 
 ```bash
 agentos-cli agent init [target]
+agentos-cli agent doctor [target]
+agentos-cli agent sync [target]
+agentos-cli agent update [target]
 agentos-cli agent developer init <name> [target]
 agentos-cli agent developer join <name> [target]
 agentos-cli agent task [args...]
 agentos-cli agent workspace context [target]
 agentos-cli agent workspace add-session [target]
-agentos-cli agent doctor [target]
-agentos-cli agent sync [target]
-agentos-cli agent update [target]
 agentos-cli agent spec scaffold [target]
 agentos-cli agent skills import <source> [target]
 ```
 
-## `agent init`
+### `agent init`
 
 向目标项目注入 AgentOS Shelf 工作流文件。
 
 ```bash
-agentos-cli agent init -t D:\work\easy\test --git-mode track
-agentos-cli agent init -t D:\work\easy\test --stack core --tools codex,claude --git-mode track
-agentos-cli agent init -t D:\work\easy\test --stack core --tools codex --git-mode ignore --force
+agentos-cli agent init
+agentos-cli agent init --tools codex,claude --git-mode track
+agentos-cli agent init D:\work\your-project --tools codex --git-mode ignore --force
 ```
 
-参数：
+常用参数：
 
-- `[target]`：目标目录，默认当前目录。
-- `-t, --target <path>`：显式指定目标目录。
-- `--stack <stack>`：选择能力包，默认 `core`，当前仅支持 `core`。
-- `--tools <tools>`：指定目标工具，逗号分隔，当前支持 `codex`、`claude`。
-- `--git-mode <track|ignore>`：指定注入文件是否提交到 Git 或加入 `.gitignore`。
-- `-f, --force`：发现冲突时直接覆盖受管文件。
+- `[target]`：目标目录，默认当前目录
+- `-t, --target <path>`：显式指定目标目录
+- `--stack <stack>`：能力包，当前支持 `core`
+- `--tools <tools>`：逗号分隔的目标工具，当前支持 `codex`、`claude`
+- `--git-mode <track|ignore>`：生成文件提交到 Git，或加入 `.gitignore`
+- `-f, --force`：发现冲突时覆盖受管文件
 
-未传 `--tools` 时，CLI 会交互选择目标工具。
+不传 `--tools` 时会进入交互选择。
 
-生成内容：
+### `agent doctor`
 
-- Codex：`AGENTS.md`、`.codex/skills/`、`.codex/agents/`
-- Codex open skills：`.agents/skills/`
-- Claude Code：`CLAUDE.md`、`.claude/skills/`、`.claude/agents/`、`.claude/settings.json`、`.claude/hooks/`
-- 统一源：`.shelf/`
-
-`.shelf/` 基础结构：
-
-- `.shelf/workflow.md`：任务生命周期、阶段路由、skill / agent 使用规则。
-- `.shelf/spec/`：项目规范、后端/前端/指南模板和可复用上下文。
-- `.shelf/tasks/`：任务 PRD、实现上下文、检查上下文和任务状态。
-- `.shelf/tasks/00-bootstrap-guidelines/`：首次初始化后用于补齐真实项目规范的引导任务。
-- `.shelf/workspace/`：journal 等项目记忆。
-- `.shelf/skills/`：项目级 workflow skills，使用 `agentos-*` 命名前缀。
-- `.shelf/agents/`：research / implement / check agent 定义。
-- `.shelf/scripts/`：任务状态、上下文加载、journal、developer 初始化等本地脚本。
-- `.shelf/rules/`：生成 `AGENTS.md` 的薄规则入口。
-- `.shelf/templates/`：平台投影模板。
-
-说明：
-
-- `.shelf/` 是共享源，`AGENTS.md`、`CLAUDE.md`、`.codex/`、`.claude/` 是由 CLI 生成的工具投影。
-- `.agents/skills/` 是 Codex 兼容的开放 skill 投影，来源仍然是 `.shelf/skills/`。
-- `AGENTS.md` 保持简洁，只指向 `.shelf/` 中的 workflow、spec、tasks、workspace、skills 和 agents。
-- `CLAUDE.md` 会引用 `AGENTS.md` 的共享规则，再补充 Claude Code 专用约束。
-- Codex 的 implement / check agents 会带 Shelf 上下文读取 prelude，适配 Codex 偏 pull-based 的工作方式。
-- 当前版本不生成旧式 `scripts/sync-agent-os.ps1`，也不写入 `package.json` 的 `scripts.agent-os:sync`。
-- 如果目标项目存在旧版 `scripts/sync-agent-os.ps1` 或 `scripts.agent-os:sync`，重新初始化时会作为旧受管内容清理。
-- `track` 适合团队共享规则，`ignore` 更适合个人临时增强。
-- 框架能力包和团队协作规则定义暂未启用，后续会在基础工作流稳定后补充。
-
-## `agent developer init`
-
-初始化当前开发者身份和 Shelf workspace memory。它是 `.shelf/scripts/init_developer.py` 的轻量 CLI 包装。
+只读检查 AgentOS Shelf 安装状态。
 
 ```bash
-agentos-cli agent developer init Ada -t D:\work\easy\test
+agentos-cli agent doctor
 ```
 
-这一步适合在项目初始化后执行，用来创建或更新本地 developer 相关的 workspace 记录。
+它会检查 `.shelf/manifest.json`、`.shelf/template-hashes.json`、workflow、skills、agents、runtime scripts、Python、工具投影文件，以及检测到的 workspace package 是否已有 package spec。
 
-## `agent developer join`
+### `agent sync`
 
-为新开发者生成一个轻量 onboarding task，不自动改变项目状态。
+从 `.shelf/` 重新生成已启用工具的投影文件。
 
 ```bash
-agentos-cli agent developer join Ada -t D:\work\easy\test
+agentos-cli agent sync --dry-run
+agentos-cli agent sync --tools codex
 ```
 
-生成目录形如 `.shelf/tasks/00-join-ada/`，用于引导新成员阅读 workflow、spec、tasks 和 workspace memory。
+`--dry-run` 会预览 `create`、`update`、`unchanged`、`user-modified`、`conflict` 等状态。实际同步会跳过用户修改和冲突文件。
 
-## `agent task`
+### `agent update`
 
-把参数透传给目标项目中的 `.shelf/scripts/task.py`，用于操作 Shelf 任务生命周期。
+保守更新已生成的工具投影，并在写入或删除前备份已有文件。
 
 ```bash
-agentos-cli agent task -t D:\work\easy\test list
-agentos-cli agent task -t D:\work\easy\test create "Add login" --slug add-login
-agentos-cli agent task -t D:\work\easy\test current --source
+agentos-cli agent update --dry-run
+agentos-cli agent update
+agentos-cli agent update --force
 ```
 
-这个命令不在 Node 侧重写任务逻辑，只负责找到目标项目、检测 Python，并调用 Shelf 自带脚本。需要时也可以直接运行：
+更新行为：
+
+- 备份写入 `.shelf/backups/`
+- 旧投影文件会在确认安全后删除
+- `.shelf/spec/`、`.shelf/tasks/`、`.shelf/workspace/`、`.shelf/config.yaml` 等用户数据路径受保护
+- `.shelf/update.skip` 可以冻结指定投影路径
+- `.shelf/update-manifest.json` 会记录迁移、备份、删除、跳过写入和跳过删除
+
+### `agent developer`
+
+初始化开发者身份，或为新成员生成 onboarding task。
+
+```bash
+agentos-cli agent developer init Ada
+agentos-cli agent developer join Ada
+```
+
+`developer init` 会写入 `.shelf/.developer` 并创建 `.shelf/workspace/<name>/`。
+
+`developer join` 会创建类似 `.shelf/tasks/00-join-ada/` 的轻量入门任务。
+
+### `agent task`
+
+把参数透传给 `.shelf/scripts/task.py`。
+
+```bash
+agentos-cli agent task list
+agentos-cli agent task create "Add login" --slug add-login
+agentos-cli agent task current --source
+```
+
+也可以直接运行：
 
 ```bash
 python .shelf/scripts/task.py list
 ```
 
-## `agent workspace`
+### `agent workspace`
 
-轻量包装 `.shelf/scripts/get_context.py` 和 `.shelf/scripts/add_session.py`，用于读取项目记忆和追加 session journal。
+读取项目上下文或追加 session journal。
 
 ```bash
-agentos-cli agent workspace context -t D:\work\easy\test
-agentos-cli agent workspace context -t D:\work\easy\test --json
-agentos-cli agent workspace add-session -t D:\work\easy\test --title "Improve Shelf update" --summary "Added update safety checks" --commit abc1234
-agentos-cli agent workspace add-session -t D:\work\easy\test --title "Planning session" --summary "Captured next steps" --no-commit
+agentos-cli agent workspace context
+agentos-cli agent workspace context --json
+agentos-cli agent workspace add-session --title "Improve update" --summary "Verified update safety" --no-commit
 ```
 
-`context` 只读输出当前 git / Shelf 上下文；`add-session` 会写入当前 developer 的 `.shelf/workspace/` journal，并默认按 `.shelf/config.yaml` 的 `session_commit_message` 自动提交 workspace/task 变化。需要保留未提交状态时使用 `--no-commit`。
+`context` 会输出当前 developer、git 状态、最近提交、活跃任务、journal 文件和 spec layer。
 
-## `agent doctor`
+`add-session` 会写入当前 developer 的 `.shelf/workspace/` journal。默认会按 `.shelf/config.yaml` 的 `session_commit_message` 自动提交 workspace/task 变化；需要保留未提交状态时使用 `--no-commit`。
 
-只读检查目标项目的 AgentOS Shelf 安装状态。
+### `agent spec scaffold`
+
+为 monorepo workspace package 生成 package spec 骨架。
 
 ```bash
-agentos-cli agent doctor -t D:\work\easy\test
+agentos-cli agent spec scaffold --dry-run
+agentos-cli agent spec scaffold
+agentos-cli agent spec scaffold --package web=packages/web,api=packages/api
 ```
 
-检查内容包括 `.shelf/manifest.json`、`.shelf/template-hashes.json`、workflow、共享规则、skills、agents、核心 runtime scripts、Python 是否可用、manifest 中启用工具的投影文件，以及检测到的 workspace package 是否已有 `.shelf/spec/packages/<package-id>/README.md`。
+默认读取 `package.json` workspaces 和 `pnpm-workspace.yaml`，生成：
 
-## `agent sync`
-
-从 `.shelf/` 重新生成已启用工具的投影文件。
-
-```bash
-agentos-cli agent sync -t D:\work\easy\test --dry-run
-agentos-cli agent sync -t D:\work\easy\test --tools codex
+```text
+.shelf/spec/packages/<package-id>/README.md
+.shelf/spec/packages/<package-id>/architecture.md
+.shelf/spec/packages/<package-id>/quality.md
 ```
 
-`--dry-run` 会预览 `create`、`update`、`unchanged`、`user-modified`、`conflict` 等状态。实际同步会跳过用户修改和冲突文件，避免盲目覆盖。
+单包项目不会自动生成 package spec。可以用 `--package web=.` 手动测试。
 
-## `agent update`
+### `agent skills import`
 
-保守更新已生成的工具投影，并在写入或删除前备份已有投影文件。
-
-```bash
-agentos-cli agent update -t D:\work\easy\test --dry-run
-agentos-cli agent update -t D:\work\easy\test
-agentos-cli agent update -t D:\work\easy\test --force
-```
-
-默认遇到用户修改或冲突的投影文件会阻断。确认后可使用 `--force`。
-
-更新行为：
-
-- 备份会写入 `.shelf/backups/`。
-- 本次不再生成的旧投影文件会被安全删除。
-- `.shelf/spec/`、`.shelf/tasks/`、`.shelf/workspace/`、`.shelf/config.yaml` 等用户数据路径会被保护，不会作为 obsolete 文件删除。
-- 可在 `.shelf/update.skip` 写入需要冻结的投影路径。支持精确文件路径和以 `/` 结尾的目录前缀，例如 `AGENTS.md`、`.claude/`。
-- 每次实际更新会写入 `.shelf/update-manifest.json`，记录版本迁移、备份、删除、跳过写入和跳过删除的路径。
-
-## `agent spec scaffold`
-
-为 monorepo workspace package 生成轻量 package spec 骨架。
+把已有项目级 skills 导入目标项目。
 
 ```bash
-agentos-cli agent spec scaffold -t D:\work\easy\test --dry-run
-agentos-cli agent spec scaffold -t D:\work\easy\test
-agentos-cli agent spec scaffold -t D:\work\easy\test --package web=packages/web,api=packages/api
-```
-
-默认读取 `package.json` workspaces 和 `pnpm-workspace.yaml`，并生成：
-
-- `.shelf/spec/packages/<package-id>/README.md`
-- `.shelf/spec/packages/<package-id>/architecture.md`
-- `.shelf/spec/packages/<package-id>/quality.md`
-
-默认不覆盖已有 spec 文件。确认需要重写时可使用 `--force`。
-
-## `agent skills import`
-
-把已有项目级 skills 导入到目标项目。
-
-```bash
-agentos-cli agent skills import <source> [target]
-agentos-cli agent skills import D:\old-project\.claude\skills -t D:\work\easy\test
-agentos-cli agent skills import D:\skills\agentos-brainstorm -t D:\work\easy\test --mode overwrite
-agentos-cli agent skills import D:\shared-skills -t D:\work\easy\test --to codex
+agentos-cli agent skills import D:\old-project\.claude\skills
+agentos-cli agent skills import D:\skills\agentos-brainstorm --mode overwrite
+agentos-cli agent skills import D:\shared-skills --to codex
 ```
 
 参数：
 
-- `<source>`：单个 skill 目录，或包含多个 skill 子目录的 skills 根目录；每个 skill 目录需要包含 `SKILL.md`。
-- `[target]` / `-t, --target <path>`：目标项目目录，默认当前目录。
-- `--mode <skip|overwrite>`：导入模式；默认交互选择。
-- `--to <auto|shelf|agent-os|codex|claude>`：导入目标，默认 `auto`；`agent-os` 作为旧别名保留。
-- `-f, --force`：等价于 `--mode overwrite`。
+- `<source>`：单个 skill 目录，或包含多个 skill 子目录的根目录
+- `[target]` / `-t, --target <path>`：目标项目目录，默认当前目录
+- `--mode <skip|overwrite>`：导入模式，默认交互选择
+- `--to <auto|shelf|agent-os|codex|claude>`：导入目标，默认 `auto`
+- `-f, --force`：等价于 `--mode overwrite`
 
-`auto` 模式下：
+`auto` 模式会优先导入 `.shelf/skills`。单工具旧项目没有 `.shelf/` 时，会导入已存在的 `.codex/skills` 或 `.claude/skills`。
 
-- 如果目标项目存在 `.shelf/skills`，优先导入到统一源。
-- 单工具项目没有 `.shelf/` 时，会导入到已存在的 `.codex/skills` 或 `.claude/skills`。
+## Git 模式
+
+初始化时可以选择：
+
+- `track`：把 AI 工作流文件提交到 Git，适合团队共享规则。
+- `ignore`：把生成文件追加到 `.gitignore`，适合个人临时增强。
+
+如果你不确定，团队项目通常优先选择 `track`。个人试用或不想影响仓库历史时选择 `ignore`。
+
+## 与 Trellis 的关系
+
+AgentOS Shelf 参考了 Trellis 的一些耐用设计：文件化上下文、任务驱动工作流、轻量规则投影、可复用 skills、项目记忆和安全更新。
+
+本项目不会完整复制 Trellis 的所有能力。当前方向是先把 Codex / Claude Code 双平台的轻量 Shelf 基础跑稳，再谨慎扩展更多平台、hooks、迁移和框架能力包。
 
 ## 开发验证
 
@@ -233,3 +369,34 @@ agentos-cli agent skills import D:\shared-skills -t D:\work\easy\test --to codex
 npm test
 npm pack --dry-run
 ```
+
+本地全局测试：
+
+```bash
+npm install
+npm link
+agentos-cli --version
+agentos-cli agent --help
+```
+
+## FAQ
+
+### 可以用中文写 `.shelf/spec/` 吗？
+
+可以。`.shelf/spec/`、`.shelf/tasks/`、`.shelf/workspace/` 是给人和 AI 共同读取的项目记忆，中文完全可用。建议路径、命令、代码符号保持原样。
+
+### `agent doctor` 提示 Python 缺失怎么办？
+
+安装 Python 3，并确保 `python` 或 `python3` 在 PATH 中。没有 Python 时，`agent init` 可以完成，但 task、workspace 和 developer 命令不能运行。
+
+### 单包项目执行 `agent spec scaffold` 显示 0 packages 正常吗？
+
+正常。自动检测只识别 `package.json` workspaces 或 `pnpm-workspace.yaml`。单包项目可以直接维护 `.shelf/spec/frontend/`，也可以用 `--package web=.` 手动生成 package spec。
+
+### 应该直接修改 `.codex/` 或 `.claude/` 吗？
+
+一般不建议。优先修改 `.shelf/`，然后运行 `agent sync` 或 `agent update` 生成投影。这样 Codex 和 Claude Code 能共享同一套源。
+
+## 许可证
+
+ISC
