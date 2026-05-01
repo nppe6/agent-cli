@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/assets/shelf-logo.png" alt="AgentOS Shelf logo" width="180">
+  <img src="./docs/assets/shelf-logo.png" alt="AgentOS Shelf logo" width="360">
 </p>
 
 <h1 align="center">AgentOS Shelf CLI</h1>
@@ -19,9 +19,9 @@
 </p>
 
 <p align="center">
-  <img alt="Node.js >=18" src="https://img.shields.io/badge/node-%3E%3D18-339933">
-  <img alt="Codex" src="https://img.shields.io/badge/Codex-supported-111827">
-  <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-supported-6b46c1">
+  <img alt="Node 18 plus" src="https://img.shields.io/badge/node-18%2B-339933">
+  <img alt="Codex supported" src="https://img.shields.io/badge/Codex-supported-111827">
+  <img alt="Claude Code supported" src="https://img.shields.io/badge/Claude%20Code-supported-6b46c1">
 </p>
 
 ## 什么是 AgentOS Shelf
