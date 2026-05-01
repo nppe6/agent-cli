@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/agentos-cli">npm</a>
+  <a href="https://www.npmjs.com/package/agentos-cli">Npm</a>
   ·
   <a href="https://github.com/nppe6/agent-cli">GitHub</a>
   ·
