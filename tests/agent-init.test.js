@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const test = require('node:test');
@@ -33,8 +33,15 @@ test('injects full Shelf workflow into a clean project', async () => {
   await agentInit(projectDirectory, { stack: 'core', force: true, gitMode: 'track', tools: ['codex', 'claude'] });
 
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', '.gitignore')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'spec', 'README.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'spec', 'backend', 'index.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'spec', 'frontend', 'component-guidelines.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'spec', 'guides', 'cross-layer-thinking-guide.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'tasks', 'README.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'tasks', '00-bootstrap-guidelines', 'task.json')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'tasks', '00-bootstrap-guidelines', 'prd.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'tasks', '00-bootstrap-guidelines', 'implement.jsonl')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'workspace', 'README.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'workflow.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'scripts', 'task.py')), true);
@@ -61,6 +68,18 @@ test('injects full Shelf workflow into a clean project', async () => {
   assert.match(agentsContent, /\.shelf\/agents/);
   assert.doesNotMatch(agentsContent, /agentos-project-context/);
   assert.match(claudeContent, /Follow `AGENTS\.md`/);
+
+  const bootstrapPrd = fs.readFileSync(path.join(projectDirectory, '.shelf', 'tasks', '00-bootstrap-guidelines', 'prd.md'), 'utf8');
+  assert.match(bootstrapPrd, /\.shelf\/spec/);
+  assert.doesNotMatch(bootstrapPrd, /\.trellis/);
+
+  const codexImplementContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'implement.md'), 'utf8');
+  const codexCheckContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'check.md'), 'utf8');
+  const claudeImplementContent = fs.readFileSync(path.join(projectDirectory, '.claude', 'agents', 'implement.md'), 'utf8');
+  assert.match(codexImplementContent, /Required: Load Shelf Context First/);
+  assert.match(codexImplementContent, /implement\.jsonl/);
+  assert.match(codexCheckContent, /check\.jsonl/);
+  assert.doesNotMatch(claudeImplementContent, /Required: Load Shelf Context First/);
 });
 
 test('injects core-only workflow when the core stack is selected', async () => {
@@ -380,3 +399,4 @@ test('prints generated file summary tree in blue after completion', async () => 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+

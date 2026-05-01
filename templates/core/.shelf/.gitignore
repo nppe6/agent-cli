@@ -1,0 +1,12 @@
+# Local Shelf runtime state
+.developer
+.runtime/
+.current-task
+
+# Local workspace memory is intentionally personal.
+workspace/*/journal-*.md
+workspace/*/index.md
+
+# Temporary backups and generated scratch files
+.backup-*/
+*.tmp

@@ -1,0 +1,3 @@
+{"file": ".shelf/spec/backend/quality-guidelines.md", "reason": "Backend quality expectations should be verified after bootstrap edits."}
+{"file": ".shelf/spec/frontend/quality-guidelines.md", "reason": "Frontend quality expectations should be verified after bootstrap edits."}
+{"file": ".shelf/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse guidance should match discovered project patterns."}

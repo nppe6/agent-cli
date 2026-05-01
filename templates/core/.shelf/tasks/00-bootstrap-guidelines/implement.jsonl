@@ -1,0 +1,3 @@
+{"file": ".shelf/spec/backend/index.md", "reason": "Backend spec entry point to populate during bootstrap."}
+{"file": ".shelf/spec/frontend/index.md", "reason": "Frontend spec entry point to populate during bootstrap."}
+{"file": ".shelf/spec/guides/index.md", "reason": "Cross-layer guides to adapt to this project."}

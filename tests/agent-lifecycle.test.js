@@ -117,6 +117,23 @@ test('sync dry-run classifies clean files as update when source changes', async 
   assert.equal(result.changes.some((change) => change.path === 'AGENTS.md' && change.status === 'update'), true);
 });
 
+test('sync dry-run compares transformed Codex agent templates', async () => {
+  const projectDirectory = createTempProject();
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.appendFileSync(path.join(projectDirectory, '.shelf', 'agents', 'implement.md'), '\nSource agent update.\n', 'utf8');
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.changes.some((change) => change.path === '.codex/agents/implement.md' && change.status === 'update'), true);
+});
+
 test('sync dry-run classifies user-modified projection files without writing them', async () => {
   const projectDirectory = createTempProject();
   const agentsPath = path.join(projectDirectory, 'AGENTS.md');
