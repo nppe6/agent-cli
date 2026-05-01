@@ -2,10 +2,10 @@
   <img src="./docs/assets/shelf-logo.png" alt="AgentOS Shelf logo" width="360">
 </p>
 
-<h1 align="center">AgentOS Shelf CLI</h1>
+<h5 align="center">AgentOS Shelf CLI</h5>
 
 <p align="center">
-  把现有项目初始化为 Shelf 风格的 AgentOS 工作区，让 Codex、Claude Code 和未来更多 AI coding 工具共享同一套项目记忆。
+  将项目初始化为 Shelf 风格的 AgentOS 工作区，让 Codex、Claude Code 等多个 AI coding 工具共享同一套项目记忆。
 </p>
 
 <p align="center">
