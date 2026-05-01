@@ -1,32 +1,24 @@
-# Project AgentOS Shelf Rules
+<!-- SHELF:START -->
+# AgentOS Shelf Instructions
 
-This project uses AgentOS Shelf as the shared source of truth for agent workflows.
+These instructions are for AI assistants working in this project.
 
-## Source Of Truth
+This project is managed by AgentOS Shelf. The working knowledge you need lives under `.shelf/`:
 
-- Treat `.shelf/` as the maintained source.
-- Treat `AGENTS.md`, `CLAUDE.md`, `.codex/`, and `.claude/` as generated platform projections.
-- Do not copy rules from one platform projection into another. Regenerate projections from `.shelf/` instead.
-- Keep reusable specs in `.shelf/spec/`, task context in `.shelf/tasks/`, and project memory in `.shelf/workspace/`.
+- `.shelf/workflow.md`: development phases, when to create tasks, skill routing.
+- `.shelf/spec/`: package- and layer-scoped coding guidelines; read relevant specs before writing code.
+- `.shelf/workspace/`: per-developer journals and session traces.
+- `.shelf/tasks/`: active and archived tasks, PRDs, research, and JSONL context.
+- `.shelf/skills/`: reusable AgentOS workflow skills.
+- `.shelf/agents/`: optional project-scoped implement, check, and research agents.
 
-## Workflow
+If an AgentOS command or skill is available on your platform, prefer it over manual steps. Not every platform exposes every command.
 
-- Read the project context before making non-trivial changes.
-- Protect user work: inspect existing changes before editing files, and do not revert unrelated changes.
-- Prefer existing project patterns over new abstractions.
-- Keep changes scoped to the requested task.
-- Run validation that matches the risk and affected surface.
-- Persist reusable findings in project documentation when they should guide future work.
+## Subagents
 
-## Skill Loading
+- Always wait for all subagents to complete before yielding.
+- Spawn subagents automatically when work is parallelizable, long-running, blocking, or benefits from isolation.
 
-Load project skills by task:
+Managed by AgentOS Shelf. Edits outside this block are preserved; edits inside may be overwritten by a future AgentOS update.
 
-- `agentos-project-context`: project discovery and conventions.
-- `agentos-planning`: scope, non-goals, and acceptance checks.
-- `agentos-implementation`: safe code changes.
-- `agentos-verification`: tests and risk-based checks.
-- `agentos-debugging`: bug investigation.
-- `agentos-documentation`: durable project knowledge.
-
-Framework-specific skills are deferred for now. Load them only after they are intentionally added to this project.
+<!-- SHELF:END -->

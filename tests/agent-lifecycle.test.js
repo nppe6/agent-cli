@@ -40,9 +40,11 @@ test('init writes manifest and template hashes for a single-tool install', async
   assert.equal(manifest.schemaVersion, 1);
   assert.deepEqual(manifest.tools, ['codex']);
   assert.match(manifest.generatedFiles.join('\n'), /AGENTS\.md/);
-  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/skills\/agentos-project-context\/SKILL\.md/);
+  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/skills\/agentos-brainstorm\/SKILL\.md/);
+  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/agents\/implement\.md/);
   assert.equal(hashes.schemaVersion, 1);
   assert.equal(typeof hashes.files['AGENTS.md'].hash, 'string');
+  assert.equal(typeof hashes.files['.codex/agents/implement.md'].hash, 'string');
   assert.equal(typeof hashes.files['.shelf/manifest.json'].hash, 'string');
 });
 
@@ -190,4 +192,22 @@ test('sync regenerates missing projection files from .shelf', async () => {
   assert.equal(result.dryRun, false);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(result.generatedFiles.includes('AGENTS.md'), true);
+});
+
+test('sync dry-run reports missing projected agent files', async () => {
+  const projectDirectory = createTempProject();
+
+  await runSilently(() => agentInit(projectDirectory, {
+    force: true,
+    gitMode: 'track',
+    stack: 'core',
+    tools: ['codex']
+  }));
+
+  fs.rmSync(path.join(projectDirectory, '.codex', 'agents', 'research.md'), { force: true });
+
+  const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
+
+  assert.equal(result.dryRun, true);
+  assert.equal(result.changes.some((change) => change.path === '.codex/agents/research.md' && change.status === 'create'), true);
 });

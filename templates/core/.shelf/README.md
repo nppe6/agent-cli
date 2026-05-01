@@ -10,5 +10,8 @@ Platform-specific files such as `AGENTS.md`, `CLAUDE.md`, `.codex/`, and `.claud
 - `tasks/`: task-scoped PRDs, implementation notes, review context, and state.
 - `workspace/`: project memory such as journal notes and reusable working context.
 - `skills/`: portable workflow skills projected into AI coding platforms.
+- `agents/`: implement, check, and research agent definitions projected into AI coding platforms.
+- `workflow.md`: task lifecycle, phase routing, and skill/agent usage rules.
+- `scripts/`: local helpers for task state, context loading, and workspace journals.
 - `rules/`: shared agent instructions.
 - `templates/`: platform-specific entry file templates.

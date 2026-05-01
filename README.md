@@ -5,7 +5,8 @@
 ## 适用场景
 
 - 希望在已有项目中注入统一的 AI Agent 工作流。
-- 希望以 `.shelf/` 作为 spec、task、workspace memory、rules 和 skills 的统一源。
+- 希望以 `.shelf/` 作为 workflow、spec、task、workspace memory、agents、rules 和 skills 的统一源。
+- 希望根 `AGENTS.md` 保持简洁，把真正的流程、技能和项目记忆放进 Shelf 目录。
 - 希望同一套项目结构复用到 Codex、Claude Code 等 AI coding 工具。
 - 希望先落地基础工作流，后续再按需增加框架能力包和团队协作规则。
 
@@ -57,22 +58,27 @@ agentos-cli agent init -t D:\work\easy\test --stack core --tools codex --git-mod
 
 生成内容：
 
-- Codex：`AGENTS.md`、`.codex/skills/`
-- Claude Code：`CLAUDE.md`、`.claude/skills/`
+- Codex：`AGENTS.md`、`.codex/skills/`、`.codex/agents/`
+- Claude Code：`CLAUDE.md`、`.claude/skills/`、`.claude/agents/`
 - 统一源：`.shelf/`（单工具和多工具安装都会生成）
 
 `.shelf/` 基础结构：
 
+- `.shelf/workflow.md`：任务生命周期、阶段路由、skill / agent 使用规则
 - `.shelf/spec/`：项目规范和可复用上下文
 - `.shelf/tasks/`：任务 PRD、实现上下文、检查上下文和任务状态
 - `.shelf/workspace/`：journal 等项目记忆
-- `.shelf/skills/`：项目级 workflow skills，当前使用 `agentos-*` 命名前缀
-- `.shelf/rules/`：共享 Agent 规则
+- `.shelf/skills/`：项目级 workflow skills，使用 `agentos-*` 命名前缀
+- `.shelf/agents/`：research / implement / check agent 定义
+- `.shelf/scripts/`：任务状态、上下文加载、journal 等本地脚本
+- `.shelf/rules/`：生成 `AGENTS.md` 的薄规则入口
 - `.shelf/templates/`：平台投影模板
 
 说明：
 
 - `.shelf/` 是共享源，`AGENTS.md`、`CLAUDE.md`、`.codex/`、`.claude/` 是由 CLI 生成的工具投影。
+- `AGENTS.md` 保持简洁，只指向 `.shelf/` 中的 workflow、spec、tasks、workspace、skills 和 agents。
+- `CLAUDE.md` 会引用 `AGENTS.md` 的共享规则，再补充 Claude Code 专用的行为约束。
 - 当前版本不再生成 `scripts/sync-agent-os.ps1`，也不再写入 `package.json` 的 `scripts.agent-os:sync`。
 - 如果目标项目存在旧版 `scripts/sync-agent-os.ps1` 或 `scripts.agent-os:sync`，重新初始化时会作为旧受管内容清理。
 - `track` 适合团队共享规则，`ignore` 更适合个人临时增强。
@@ -86,7 +92,7 @@ agentos-cli agent init -t D:\work\easy\test --stack core --tools codex --git-mod
 agentos-cli agent doctor -t D:\work\easy\test
 ```
 
-检查内容包括 `.shelf/manifest.json`、`.shelf/template-hashes.json`、共享规则、skills 目录，以及 manifest 中启用工具的投影文件。
+检查内容包括 `.shelf/manifest.json`、`.shelf/template-hashes.json`、workflow、共享规则、skills、agents，以及 manifest 中启用工具的投影文件。
 
 ## `agent sync`
 
@@ -106,7 +112,7 @@ agentos-cli agent sync -t D:\work\easy\test --tools codex
 ```bash
 agentos-cli agent skills import <source> [target]
 agentos-cli agent skills import D:\old-project\.claude\skills -t D:\work\easy\test
-agentos-cli agent skills import D:\skills\agentos-planning -t D:\work\easy\test --mode overwrite
+agentos-cli agent skills import D:\skills\agentos-brainstorm -t D:\work\easy\test --mode overwrite
 agentos-cli agent skills import D:\shared-skills -t D:\work\easy\test --to codex
 ```
 

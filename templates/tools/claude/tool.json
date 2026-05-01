@@ -2,6 +2,7 @@
   "name": "claude",
   "entryFile": "CLAUDE.md",
   "skillsDir": ".claude/skills",
+  "agentsDir": ".claude/agents",
   "optionalDirs": [
     ".claude/commands",
     ".claude/agents",
