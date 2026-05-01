@@ -14,7 +14,7 @@ The current project has successfully moved from a small Agent OS scaffold toward
 - Workflow skills were migrated from the upstream workflow set and renamed to `agentos-*`.
 - Shared agents now exist under `.shelf/agents` and project into `.codex/agents` / `.claude/agents`.
 - `AGENTS.md` is intentionally thin, while `CLAUDE.md` references `AGENTS.md` instead of duplicating all rules.
-- `init`, `sync`, `doctor`, and `skills import` support the current Codex/Claude projection model.
+- `init`, `sync`, `doctor`, `update`, `spec scaffold`, `workspace`, and `skills import` support the current Codex/Claude projection model.
 
 This project should remain a lightweight AgentOS Shelf CLI rather than becoming a full Trellis clone. The upstream reference is valuable because its core foundation matches the intended direction: file-backed context, task-driven work, lightweight rule projection, reusable skills, and project memory. Future work should selectively absorb the parts that strengthen those foundations without inheriting every platform integration, migration layer, or hook system.
 
@@ -38,13 +38,14 @@ Current commands:
 - `agent sync`: regenerates projections from `.shelf`.
 - `agent update`: conservatively updates projections with backups and protected deletes.
 - `agent spec scaffold`: generates package-specific spec folders for workspace packages.
+- `agent workspace context/add-session`: reads Shelf context and appends developer journal sessions through runtime scripts.
 - `agent skills import`: imports external skill directories into Shelf or tool-specific destinations.
 
 Assessment:
 
 - Good fit for a small, npm-distributed CLI.
 - Command surface is intentionally smaller than upstream.
-- The CLI now has light wrappers for developer setup, task operations, update safety, and package spec scaffolding, but still has no platform hook installation command or worktree orchestration command.
+- The CLI now has light wrappers for developer setup, task operations, workspace memory, update safety, and package spec scaffolding, but still has no platform hook installation command or worktree orchestration command.
 - This is an intentional product direction for now: the CLI should stay approachable while the Shelf foundation stabilizes.
 
 ## Directional Choice: Same Foundation, Different Trajectory
@@ -185,7 +186,7 @@ Key upstream ideas:
 | Thin root AGENTS rules | `AGENTS.shared.md` with block-level sync | managed `AGENTS.md` block | Covered |
 | Claude references AGENTS | `CLAUDE.md` shim | upstream also treats AGENTS as shared rules source | Covered |
 | Task directory model | `.shelf/tasks`, bootstrap task, and `agent task` passthrough | full `.trellis/tasks` lifecycle | Partially covered |
-| Project memory | workspace directory, journal scripts, and `agent developer init` wrapper | journal/index system with init/onboarding | Partially covered |
+| Project memory | workspace directory, journal scripts, `agent developer init`, and explicit `agent workspace` wrappers | journal/index system with init/onboarding | Partially covered |
 | Spec injection | generic specs exist; Codex implement/check agents load context explicitly | hooks/preludes inject curated specs | Partially covered |
 | Automatic session context injection | pull-based Codex prelude plus lightweight Claude session-start hook | shared hooks/plugins/settings | Selective |
 | Platform capability registry | Codex/Claude registry with capability flags | 14-platform `AI_TOOLS` registry | Partial |
@@ -266,16 +267,19 @@ Current state:
 - `.shelf/workspace/` exists.
 - `add_session.py` and journal utilities are present.
 - `agent developer init <name>` delegates to `.shelf/scripts/init_developer.py`.
+- `agent workspace context` delegates to `.shelf/scripts/get_context.py`.
+- `agent workspace add-session` delegates to `.shelf/scripts/add_session.py`.
 - Claude receives a lightweight session-start reminder hook.
 
 Gap:
 
 - No automatic session-start or finish-work hook writes journal entries.
+- Journal capture is explicit through `agent workspace add-session`.
 - Developer initialization is available as an explicit command, not as an automatic `agent init` step.
 
 Recommended next step:
 
-- Consider hook-based journal capture later; keep the current hook reminder-only for now.
+- Keep journal capture explicit while evaluating whether hook-based capture is useful in real projects.
 
 ### Multi-Platform Reuse
 
@@ -299,7 +303,7 @@ Recommended next step:
 
 ### 1. Hook and Session Context Strategy
 
-The project now has pull-based Codex prelude behavior, script wrappers, and a reminder-only Claude session-start hook, but no automatic task/spec context injection or journal capture.
+The project now has pull-based Codex prelude behavior, script wrappers, explicit workspace context/session commands, and a reminder-only Claude session-start hook, but no automatic task/spec context injection or journal capture.
 
 Recommendation:
 
