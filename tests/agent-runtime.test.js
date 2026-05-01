@@ -5,6 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { agentDeveloperInit } = require('../lib/actions/agent-developer');
+const { addWorkspaceSession, getWorkspaceContext } = require('../lib/actions/agent-workspace');
 const agentTask = require('../lib/actions/agent-task');
 const registerAgentCommands = require('../lib/commands/agent');
 const {
@@ -39,6 +40,10 @@ class FakeCommand {
   }
 
   option() {
+    return this;
+  }
+
+  requiredOption() {
     return this;
   }
 
@@ -138,6 +143,67 @@ test('task action delegates arbitrary args to task.py', async () => {
   assert.deepEqual(calls[0].args, ['create', 'Demo task', '--slug', 'demo']);
 });
 
+test('workspace context delegates to get_context.py', async () => {
+  const projectDirectory = createTempProject();
+  const calls = [];
+
+  const result = await getWorkspaceContext(projectDirectory, { json: true }, {
+    runShelfScript: (target, script, args) => {
+      calls.push({ target, script, args });
+      return { status: 0 };
+    }
+  });
+
+  assert.equal(result.status, 0);
+  assert.equal(calls[0].target, path.resolve(projectDirectory));
+  assert.equal(calls[0].script, 'get_context.py');
+  assert.deepEqual(calls[0].args, ['--json']);
+});
+
+test('workspace add-session delegates options to add_session.py', async () => {
+  const projectDirectory = createTempProject();
+  const calls = [];
+
+  const result = await addWorkspaceSession(projectDirectory, {
+    branch: 'feat/demo',
+    commit: 'abc1234',
+    contentFile: 'notes.md',
+    noCommit: true,
+    package: 'web',
+    stdin: true,
+    summary: 'Built the demo flow.',
+    title: 'Demo session'
+  }, {
+    runShelfScript: (target, script, args) => {
+      calls.push({ target, script, args });
+      return { status: 0 };
+    }
+  });
+
+  assert.equal(result.status, 0);
+  assert.equal(calls[0].target, path.resolve(projectDirectory));
+  assert.equal(calls[0].script, 'add_session.py');
+  assert.deepEqual(calls[0].args, [
+    '--title', 'Demo session',
+    '--commit', 'abc1234',
+    '--summary', 'Built the demo flow.',
+    '--content-file', 'notes.md',
+    '--package', 'web',
+    '--branch', 'feat/demo',
+    '--no-commit',
+    '--stdin'
+  ]);
+});
+
+test('workspace add-session requires a title', async () => {
+  await assert.rejects(
+    () => addWorkspaceSession('.', { summary: 'Missing title.' }, {
+      runShelfScript: () => ({ status: 0 })
+    }),
+    /Session title is required/
+  );
+});
+
 test('agent task command forwards passthrough args', async () => {
   const program = new FakeCommand();
   const calls = [];
@@ -185,4 +251,39 @@ test('agent spec scaffold command forwards target and options', async () => {
   assert.equal(calls[0].options.dryRun, true);
   assert.equal(calls[0].options.force, true);
   assert.equal(calls[0].options.package, 'web=apps/web');
+});
+
+test('agent workspace commands forward target and options', async () => {
+  const program = new FakeCommand();
+  const calls = [];
+
+  registerAgentCommands(program, {
+    addWorkspaceSession: async (target, options) => {
+      calls.push({ action: 'add-session', target, options });
+    },
+    getWorkspaceContext: async (target, options) => {
+      calls.push({ action: 'context', target, options });
+    }
+  });
+
+  const agentCommand = program.find('agent');
+  const workspaceCommand = agentCommand.find('workspace');
+  const contextCommand = workspaceCommand.find('context [target]');
+  const addSessionCommand = workspaceCommand.find('add-session [target]');
+
+  await contextCommand.actionHandler('project-a', { json: true, target: 'project-b' });
+  await addSessionCommand.actionHandler('project-a', {
+    noCommit: true,
+    summary: 'Summary',
+    title: 'Session',
+    target: 'project-c'
+  });
+
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls.map((call) => call.action), ['context', 'add-session']);
+  assert.equal(calls[0].target, 'project-b');
+  assert.equal(calls[0].options.json, true);
+  assert.equal(calls[1].target, 'project-c');
+  assert.equal(calls[1].options.title, 'Session');
+  assert.equal(calls[1].options.noCommit, true);
 });

@@ -33,6 +33,8 @@ agentos-cli agent init [target]
 agentos-cli agent developer init <name> [target]
 agentos-cli agent developer join <name> [target]
 agentos-cli agent task [args...]
+agentos-cli agent workspace context [target]
+agentos-cli agent workspace add-session [target]
 agentos-cli agent doctor [target]
 agentos-cli agent sync [target]
 agentos-cli agent update [target]
@@ -128,6 +130,19 @@ agentos-cli agent task -t D:\work\easy\test current --source
 ```bash
 python .shelf/scripts/task.py list
 ```
+
+## `agent workspace`
+
+轻量包装 `.shelf/scripts/get_context.py` 和 `.shelf/scripts/add_session.py`，用于读取项目记忆和追加 session journal。
+
+```bash
+agentos-cli agent workspace context -t D:\work\easy\test
+agentos-cli agent workspace context -t D:\work\easy\test --json
+agentos-cli agent workspace add-session -t D:\work\easy\test --title "Improve Shelf update" --summary "Added update safety checks" --commit abc1234
+agentos-cli agent workspace add-session -t D:\work\easy\test --title "Planning session" --summary "Captured next steps" --no-commit
+```
+
+`context` 只读输出当前 git / Shelf 上下文；`add-session` 会写入当前 developer 的 `.shelf/workspace/` journal，并默认按 `.shelf/config.yaml` 的 `session_commit_message` 自动提交 workspace/task 变化。需要保留未提交状态时使用 `--no-commit`。
 
 ## `agent doctor`
 
