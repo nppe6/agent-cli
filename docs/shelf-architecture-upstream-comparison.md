@@ -32,6 +32,8 @@ Files:
 Current commands:
 
 - `agent init`: writes `.shelf` plus selected tool projections.
+- `agent developer init`: delegates developer identity setup to `.shelf/scripts/init_developer.py`.
+- `agent task`: delegates task lifecycle operations to `.shelf/scripts/task.py`.
 - `agent doctor`: checks required Shelf files and selected tool directories.
 - `agent sync`: regenerates projections from `.shelf`.
 - `agent skills import`: imports external skill directories into Shelf or tool-specific destinations.
@@ -40,7 +42,7 @@ Assessment:
 
 - Good fit for a small, npm-distributed CLI.
 - Command surface is intentionally smaller than upstream.
-- The CLI currently has no native task commands, update command, migration command, platform hook installation command, or developer onboarding command.
+- The CLI now has light wrappers for developer setup and task operations, but still has no native update command, migration command, platform hook installation command, or worktree orchestration command.
 - This is an intentional product direction for now: the CLI should stay approachable while the Shelf foundation stabilizes.
 
 ## Directional Choice: Same Foundation, Different Trajectory
@@ -71,9 +73,9 @@ Files/directories:
 Assessment:
 
 - The migrated workflow, scripts, core skills, and agents have direct upstream counterparts.
-- The spec/tasks/workspace directories are currently placeholders, not full upstream bootstrap templates.
+- The spec/tasks/workspace directories now include generic templates and a static bootstrap guidelines task, but do not yet include upstream's dynamic onboarding generation.
 - `.shelf/config.yaml` contains upstream-style runtime settings, but the CLI does not yet use most of them.
-- `.shelf/workflow.md` includes runtime breadcrumb contracts that assume hooks or platform preludes exist; this is only partially true in the current CLI.
+- `.shelf/workflow.md` includes runtime breadcrumb contracts that assume hooks or platform preludes exist; Codex implement/check agents now get a pull-based prelude, while hook-based injection is still deferred.
 
 ### Projection Model
 
@@ -116,11 +118,12 @@ Current behavior:
 - `.shelf/template-hashes.json` stores template hashes.
 - `sync` classifies projection files as create, update, unchanged, user-modified, or conflict.
 - User-modified projection files are skipped during sync.
+- For managed root blocks such as `AGENTS.md`, hash comparison is scoped to the Shelf block so user-authored text outside the block is preserved.
 
 Assessment:
 
-- This is enough for safe projection regeneration.
-- It is simpler than upstream and does not yet cover full template updates, version comparison, protected user data, migration manifests, backup creation, safe deletes, or `update.skip`.
+- This is enough for safe projection regeneration and conservative updates.
+- It is simpler than upstream and does not yet cover version comparison, migration manifests, protected path manifests, safe deletes, or `update.skip`.
 
 ### Rules Model
 
@@ -138,7 +141,7 @@ Assessment:
 
 - This matches the desired direction: rules stay thin and avoid dumping all workflow content into the root files.
 - It is conceptually aligned with upstream's managed-block approach.
-- The current sync implementation overwrites the whole generated `AGENTS.md` if it is still template-owned, rather than replacing only the managed block inside a larger user-authored file.
+- `sync` now replaces only the managed Shelf block in `AGENTS.md`; user-authored content outside the block remains intact.
 
 ## Upstream Architecture Reference
 
@@ -175,20 +178,21 @@ Key upstream ideas:
 | Shared workflow source directory | `.shelf/` | `.trellis/` | Covered |
 | Core workflow skills | `agentos-before-dev`, `agentos-brainstorm`, `agentos-break-loop`, `agentos-check`, `agentos-continue`, `agentos-finish-work`, `agentos-meta`, `agentos-update-spec` | `trellis-*` skills | Covered |
 | Shared implement/check/research agents | `.shelf/agents` projects to Codex/Claude | Platform-specific agents | Partially covered |
-| Thin root AGENTS rules | `AGENTS.shared.md` | managed `AGENTS.md` block | Covered, but update behavior is weaker |
+| Thin root AGENTS rules | `AGENTS.shared.md` with block-level sync | managed `AGENTS.md` block | Covered |
 | Claude references AGENTS | `CLAUDE.md` shim | upstream also treats AGENTS as shared rules source | Covered |
-| Task directory model | scripts and workflow expect `.shelf/tasks` | full `.trellis/tasks` lifecycle | Partially covered |
-| Project memory | scripts and workspace directory exist | journal/index system with init/onboarding | Partially covered |
-| Spec injection | specs exist as placeholders; scripts can read them | hooks/preludes inject curated specs | Partially covered |
-| Automatic session context injection | pull-based Codex prelude planned first; hooks deferred | shared hooks/plugins/settings | Selective |
-| Platform capability registry | two JSON tool layouts | 14-platform `AI_TOOLS` registry | Missing |
-| Rich spec bootstrap | generic templates planned first | backend/frontend/guides templates and monorepo detection | Selective |
-| Bootstrap task | static first-run task planned first | `00-bootstrap-guidelines` | Selective |
-| Joiner onboarding | not created | `00-join-<developer>` | Missing |
-| Native update/migration | `sync` only | full `update` with migrations | Missing |
-| Internal `.shelf` ignore rules | planned as lightweight runtime protection | `.trellis/.gitignore` | Selective |
-| Python requirement check | none | Python >= 3.9 check | Missing |
-| Managed block replacement | whole-file projection classification | block-level AGENTS/workflow handling | Partial |
+| Task directory model | `.shelf/tasks`, bootstrap task, and `agent task` passthrough | full `.trellis/tasks` lifecycle | Partially covered |
+| Project memory | workspace directory, journal scripts, and `agent developer init` wrapper | journal/index system with init/onboarding | Partially covered |
+| Spec injection | generic specs exist; Codex implement/check agents load context explicitly | hooks/preludes inject curated specs | Partially covered |
+| Automatic session context injection | pull-based Codex prelude plus lightweight Claude session-start hook | shared hooks/plugins/settings | Selective |
+| Platform capability registry | Codex/Claude registry with capability flags | 14-platform `AI_TOOLS` registry | Partial |
+| Rich spec bootstrap | backend/frontend/guides templates without framework-specific packs | backend/frontend/guides templates and monorepo detection | Selective |
+| Bootstrap task | static `00-bootstrap-guidelines` template | `00-bootstrap-guidelines` | Selective |
+| Joiner onboarding | explicit `agent developer join <name>` task generator | `00-join-<developer>` | Selective |
+| Native update/migration | conservative `agent update` with backups, no migrations | full `update` with migrations | Partial |
+| Internal `.shelf` ignore rules | `.shelf/.gitignore` template | `.trellis/.gitignore` | Covered |
+| Python requirement check | `doctor` warns when Python is missing | Python >= 3.9 check | Partial |
+| Managed block replacement | block-level `AGENTS.md` handling | block-level AGENTS/workflow handling | Partial |
+| Open Agent Skills projection | `.agents/skills` generated from `.shelf/skills` for Codex | `.agents/skills` shared layer | Covered for Codex |
 | Multi-platform reuse | Codex + Claude only | 14 platforms | Partial by design |
 
 ## Core Advantages Coverage
@@ -200,16 +204,17 @@ Current state:
 - `.shelf/spec/` exists.
 - `agentos-before-dev`, `agentos-check`, and workflow docs instruct agents to read relevant specs.
 - `implement.jsonl` and `check.jsonl` are part of the task model.
+- Generic backend/frontend/guides spec templates are included.
+- Codex implement/check agents include a pull-based Shelf context prelude.
+- Claude installs a minimal session-start hook/settings pair that reminds sessions to read Shelf context.
 
 Gap:
 
-- No generated hooks/settings currently inject spec or task context automatically.
-- Codex/Claude agents are markdown copies from `.shelf/agents`; they do not include upstream's pull-based prelude for Codex-style context loading.
+- Claude hook generation is intentionally reminder-only; it does not yet inject curated task/spec context.
 
 Recommended next step:
 
-- Add platform-aware agent rendering so Codex implement/check agents include a required context-load prelude.
-- Add Claude hooks/settings generation later, if the platform supports stable hook wiring in the target environment.
+- Decide whether Claude should remain reminder-only or grow into curated hook injection once real usage proves the need.
 
 ### Task-Driven Workflow
 
@@ -217,17 +222,20 @@ Current state:
 
 - `.shelf/tasks/` exists.
 - `task.py` and common task utilities are present.
+- `agent task [args...]` delegates to `.shelf/scripts/task.py`.
+- A static `00-bootstrap-guidelines` task is included in the template.
+- `agent developer join <name>` creates an explicit onboarding task when needed.
 - Workflow skills reference PRD, `info.md`, `implement.jsonl`, `check.jsonl`, research files, and task status.
 
 Gap:
 
-- `agent init` does not create rich task scaffolds, bootstrap task, joiner task, or developer identity.
-- There is no Node wrapper for common task operations.
+- `agent init` does not automatically generate developer-specific onboarding tasks.
+- The Node wrapper intentionally does not reimplement task logic.
 
 Recommended next step:
 
-- Add a small `agent task` command group that delegates to `.shelf/scripts/task.py`.
-- Add optional bootstrap task creation during init after Python availability is checked.
+- Keep task logic in Python for now and improve docs/examples around the passthrough CLI.
+- Keep developer-specific onboarding explicit through `agent developer join`.
 
 ### Parallel Agent Execution
 
@@ -253,16 +261,17 @@ Current state:
 
 - `.shelf/workspace/` exists.
 - `add_session.py` and journal utilities are present.
+- `agent developer init <name>` delegates to `.shelf/scripts/init_developer.py`.
+- Claude receives a lightweight session-start reminder hook.
 
 Gap:
 
 - No automatic session-start or finish-work hook writes journal entries.
-- No developer initialization path is wired into `agent init`.
+- Developer initialization is available as an explicit command, not as an automatic `agent init` step.
 
 Recommended next step:
 
-- Add developer initialization support and `.shelf/.gitignore`.
-- Later add hook-based session capture for Claude and platform-specific equivalents.
+- Consider hook-based journal capture later; keep the current hook reminder-only for now.
 
 ### Multi-Platform Reuse
 
@@ -270,81 +279,56 @@ Current state:
 
 - The structure is portable in principle.
 - Codex and Claude are supported.
+- Platform capabilities are now centralized in a small registry.
+- Codex receives `.agents/skills` as an open skills projection.
 
 Gap:
 
-- No upstream-style `AI_TOOLS` registry, template context, or configurator layer.
+- No upstream-scale `AI_TOOLS` registry, template context renderer, or configurator layer.
 - Many references inside workflow mention platforms that this CLI cannot install yet.
 
 Recommended next step:
 
-- Introduce a lightweight registry for current tools first.
 - Add one new platform only after Codex/Claude runtime behavior is correct.
 
 ## Next-Step Priorities
 
-### 1. Runtime Protection and Encoding Repair
+### 1. Hook and Session Context Strategy
 
-Several CLI strings currently render as mojibake in `agent-init.js`, `agent-skills-import.js`, and copied workflow text. This damages the user experience and makes future tests harder to trust. The project also needs `.shelf/.gitignore` so local runtime state is not accidentally committed.
-
-Recommendation:
-
-- Add `templates/core/.shelf/.gitignore`.
-- Normalize source files to UTF-8.
-- Add at least one assertion that key Chinese CLI output is readable.
-
-### 2. Codex Agents Need Pull-Based Context Prelude
-
-Upstream treats Codex as a pull-based platform: implement/check agents must explicitly load current task, PRD, and JSONL context. The current projection copies generic markdown agents and relies on human/agent memory.
+The project now has pull-based Codex prelude behavior, script wrappers, and a reminder-only Claude session-start hook, but no automatic task/spec context injection or journal capture.
 
 Recommendation:
 
-- Render Codex `implement` and `check` agents with a Shelf-specific prelude.
-- Keep research agent unchanged.
+- Keep Codex pull-based for now.
+- Let Claude hook behavior remain conservative until real projects show a stronger need.
 
-### 3. Generic Spec Templates
+### 2. Update Safety
 
-The current `spec/README.md` is too thin to deliver the "spec injected, not remembered" advantage.
-
-Recommendation:
-
-- Migrate upstream generic backend/frontend/guides spec templates, renamed to Shelf/AgentOS.
-- Keep framework-specific Vue content deferred as requested.
-
-### 4. Bootstrap Guidelines Task
-
-The first run should give the user and AI a concrete task: fill `.shelf/spec` with this project's real conventions.
+The project now has `agent update` with projection backups, but still lacks upstream's version-aware migrations, protected path handling, safe deletes, and `update.skip`.
 
 Recommendation:
 
-- Add a lightweight static `00-bootstrap-guidelines` task under `.shelf/tasks`.
-- Defer upstream's dynamic developer-specific onboarding until the basic flow proves useful.
+- Build on the existing manifest/hash model instead of porting the full upstream update system wholesale.
+- Treat migrations and protected-path manifests as separate milestones.
 
-### 5. Update Safety Is Still Basic
+### 3. Monorepo Spec Scaffolding
 
-`sync` protects user-modified projection files, but there is no version-aware `update`, migration manifest, backup, protected path list, or block-level root file replacement.
+The CLI detects simple `package.json` and `pnpm-workspace.yaml` workspace packages and reports them during init, but does not yet generate per-package spec trees.
 
 Recommendation:
 
-- First improve managed-block replacement for `AGENTS.md`.
-- Then design a Shelf update command around existing manifest/hash code.
+- Add an explicit monorepo spec scaffolding command before adding interactive init prompts.
+- Keep framework-specific Vue packs deferred.
 
 ## Good Upstream Ideas To Extend Into This Project
 
 Recommended order after the current foundation:
 
-1. Add `.shelf/.gitignore` and fix UTF-8 output.
-2. Add Codex platform-aware agent rendering instead of raw copies.
-3. Add rich generic spec templates for backend/frontend/guides, excluding deferred framework-specific Vue customization.
-4. Add static bootstrap guideline task creation through templates.
-5. Add developer initialization flow that calls `.shelf/scripts/init_developer.py`.
-6. Add lightweight platform registry for Codex and Claude, then expand cautiously.
-7. Add managed-block replacement for `AGENTS.md` and workflow-state blocks.
-8. Add `agent update` with protected paths, backups, and migration manifest support.
-9. Add hook/settings generation for Claude where appropriate.
-10. Add optional shared `.agents/skills` output for tools that support the open Agent Skills layer.
-11. Add monorepo package detection and per-package spec scaffolding.
-12. Add task command wrappers over `.shelf/scripts/task.py`.
+1. Decide whether Claude hook behavior should stay reminder-only or support curated context injection.
+2. Extend `agent update` with protected paths, safe deletes, and migration manifests.
+3. Add explicit monorepo per-package spec scaffolding.
+4. Add one new platform only after the registry shape holds up for Codex/Claude.
+5. Add worktree orchestration only after task lifecycle commands are stable.
 
 ## Implementation Guidance
 
@@ -352,8 +336,8 @@ Do not try to port the whole upstream CLI at once. The current repository is Com
 
 Best next slice:
 
-- Fix generated runtime safety and readability first: `.shelf/.gitignore`, UTF-8 strings, and Codex agent prelude.
-- Then improve actual workflow value: rich spec templates and bootstrap task.
-- Then expand platform registry and update/migration support.
+- Add protected-path and safe-delete support to `agent update`.
+- Then add explicit monorepo spec scaffolding.
+- Then evaluate richer Claude hook context injection.
 
 This sequence preserves the current project's simplicity while steadily importing the upstream design where it creates real user-facing leverage.

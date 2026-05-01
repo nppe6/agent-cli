@@ -8,4 +8,8 @@ The default structure is intentionally generic:
 - `frontend/`: client-side structure, type safety, components, hooks, state, and quality rules.
 - `guides/`: cross-layer thinking guides that apply to any package.
 
+For monorepos, keep shared guidance here and add package-specific guidance under
+`.shelf/spec/<package-name>/`. Declare known packages in `.shelf/config.yaml` so
+agents and runtime scripts can discover the right spec layer.
+
 Fill these files with this project's real conventions. Prefer examples from the codebase over aspirational rules.

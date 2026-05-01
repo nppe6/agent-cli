@@ -49,7 +49,10 @@ test('injects full Shelf workflow into a clean project', async () => {
   assert.equal(fs.existsSync(path.join(projectDirectory, 'CLAUDE.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'skills', 'agentos-brainstorm', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'agentos-brainstorm', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills', 'agentos-brainstorm', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'agents', 'check.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'settings.json')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'hooks', 'shelf-session-start.py')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'implement.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'planning')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'agentos-planning')), false);
@@ -240,6 +243,7 @@ test('injects only codex files when codex is the only selected tool', async () =
   assert.deepEqual(result.tools, ['codex']);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'agentos-brainstorm', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills', 'agentos-brainstorm', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'check.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'CLAUDE.md')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude')), false);
@@ -305,6 +309,7 @@ test('reinitializing from both tools to codex removes unselected managed files',
 
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'CLAUDE.md')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'custom-command.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'skills')), false);
@@ -333,6 +338,7 @@ test('prompts for selected tools when tools are not provided', async () => {
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'agents', 'implement.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex')), false);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.agents')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf')), true);
 
   const claudeContent = fs.readFileSync(path.join(projectDirectory, 'CLAUDE.md'), 'utf8');
@@ -363,7 +369,8 @@ test('renders generated file summary as a readable tree', () => {
   assert.equal(renderGeneratedTree(['codex', 'claude'], true), [
     '\u251c\u2500 Codex',
     '\u2502  \u251c\u2500 AGENTS.md',
-    '\u2502  \u2514\u2500 .codex/',
+    '\u2502  \u251c\u2500 .codex/',
+    '\u2502  \u2514\u2500 .agents/skills/',
     '\u251c\u2500 Claude Code',
     '\u2502  \u251c\u2500 CLAUDE.md',
     '\u2502  \u2514\u2500 .claude/',
@@ -391,6 +398,7 @@ test('prints generated file summary tree in blue after completion', async () => 
   const output = logs.join('\n');
   assert.match(output, /\x1b\[34m生成内容：\n\u251c\u2500 Codex/);
   assert.match(output, /\u2502  \u251c\u2500 AGENTS\.md/);
+  assert.match(output, /\.agents\/skills\//);
   assert.match(output, /\u251c\u2500 Claude Code/);
   assert.match(output, /\u2514\u2500 Shared Shelf source/);
   assert.match(output, /   \u2514\u2500 \.shelf\/\x1b\[0m/);
