@@ -5,7 +5,7 @@ AgentOS Shelf connects the same local architecture to different AI tools. `.shel
 When a local AI modifies AgentOS Shelf, it should distinguish two file categories first:
 
 - **Shared files**: `.shelf/workflow.md`, `.shelf/tasks/`, `.shelf/spec/`, `.shelf/scripts/`.
-- **Platform files**: `.claude/`, `.codex/`, `.cursor/`, `.opencode/`, `.kiro/`, `.gemini/`, `.qoder/`, `.codebuddy/`, `.github/`, `.factory/`, `.pi/`, `.kilocode/`, `.agent/`, `.windsurf/`, and similar directories.
+- **Platform files**: `.claude/` and `.codex/` in the current CLI. Add another platform only when the CLI has a concrete adapter and generated file set for it.
 
 Platform files do not store business state. They let the corresponding AI tool read AgentOS Shelf state, call AgentOS Shelf scripts, and load AgentOS Shelf skills/agents/hooks.
 
@@ -13,38 +13,29 @@ Platform files do not store business state. They let the corresponding AI tool r
 
 | Category | Common paths | Purpose |
 | --- | --- | --- |
-| settings/config | `.claude/settings.json`, `.codex/hooks.json`, `.qoder/settings.json` | Register hooks, plugins, extensions, or platform behavior. |
-| hooks/plugins/extensions | `.claude/hooks/`, `.opencode/plugins/`, `.pi/extensions/` | Inject context at session start, user input, agent startup, shell execution, and similar events. |
-| agents | `.claude/agents/`, `.codex/agents/`, `.kiro/agents/` | Define `shelf-research`, `shelf-implement`, and `shelf-check`. |
-| skills | `.claude/skills/`, `.agents/skills/`, `.qoder/skills/` | Capability descriptions that auto-trigger or can be read on demand. |
-| commands/prompts/workflows | `.cursor/commands/`, `.github/prompts/`, `.windsurf/workflows/` | Entry points explicitly invoked by the user. |
+| settings/config | `.claude/settings.json` | Registers Claude Code hook behavior. |
+| hooks | `.claude/hooks/` | Lightweight Claude Code session-start reminder. |
+| agents | `.claude/agents/`, `.codex/agents/` | Define `shelf-research`, `shelf-implement`, and `shelf-check`. |
+| skills | `.claude/skills/`, `.agents/skills/` | Capability descriptions that auto-trigger or can be read on demand. |
+| commands/prompts | `.claude/commands/shelf/`, `.codex/prompts/` | Entry points explicitly invoked by the user. |
 
 ## Three Platform Integration Modes
 
 ### 1. Hook / Extension Driven
 
-These platforms can trigger scripts or plugins on specific events and actively inject AgentOS Shelf context into AI.
+Claude Code can trigger scripts on specific events. Current Shelf installs only a lightweight session-start reminder hook.
 
 Common capabilities:
 
-- session-start injection of a `.shelf/` overview.
-- workflow-state hints for each user turn.
-- PRD/spec/research injection when sub-agents start.
-- Shell commands inheriting session identity.
+- session-start reminder that points the AI at `AGENTS.md` and `.shelf/workflow.md`.
 
-To change "when the AI knows what," inspect hooks/plugins/extensions and settings first.
+To change Claude startup behavior, inspect `.claude/settings.json` and `.claude/hooks/`.
 
 ### 2. Agent Prelude / Pull-Based
 
-Some platforms cannot reliably let hooks rewrite sub-agent prompts, so the agent file itself instructs the agent to read the active task, PRD, and JSONL context after startup.
+Codex and Claude agent files instruct the agent to read the active task, PRD, and JSONL context after startup.
 
 To change how sub-agents load context, inspect the agent files themselves.
-
-### 3. Main-Session Workflow
-
-Some platforms do not have AgentOS Shelf sub-agent or hook capabilities. They rely on workflows/skills/commands to guide the main-session AI to read files, run scripts, and move tasks forward.
-
-To change behavior, inspect platform workflows/skills/commands and `.shelf/workflow.md`.
 
 ## Local Modification Order
 

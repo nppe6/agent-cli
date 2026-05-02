@@ -8,18 +8,16 @@ Common AgentOS Shelf customization scenarios and what files need to be modified.
 
 | Task | Files to Modify | Platform |
 |------|-----------------|----------|
-| [Add slash command](#add-slash-command) | commands/, shelf-local | All |
-| [Add agent](#add-agent) | agents/, hook, jsonl, shelf-local | CC |
-| [Modify hook](#modify-hook) | hooks/, settings.json, shelf-local | CC |
-| [Add spec category](#add-spec-category) | spec/, jsonl, shelf-local | All |
-| [Change verify commands](#change-verify-commands) | worktree.yaml | CC |
-| [Add workflow phase](#add-workflow-phase) | task.json, dispatch, shelf-local | CC |
-| [Add post_create step](#add-post_create-step) | worktree.yaml | CC |
-| [Modify session start](#modify-session-start) | session-start.py, shelf-local | CC |
-| [Add core script](#add-core-script) | scripts/, shelf-local | All |
-| [Change task types](#change-task-types) | task.py, jsonl templates | All |
+| [Add slash command](#add-slash-command) | `.claude/commands/`, `.codex/prompts/`, shelf-local | Codex/Claude |
+| [Add agent](#add-agent) | `.claude/agents/`, `.codex/agents/`, JSONL, shelf-local | Codex/Claude |
+| [Modify hook](#modify-hook) | `.claude/hooks/`, `.claude/settings.json`, shelf-local | Claude |
+| [Add spec category](#add-spec-category) | `.shelf/spec/`, JSONL, shelf-local | Codex/Claude |
+| [Change verify commands](#change-verify-commands) | `.shelf/spec/` or agent files | Codex/Claude |
+| [Add workflow phase](#add-workflow-phase) | `.shelf/workflow.md`, command/prompt files | Codex/Claude |
+| [Add core script](#add-core-script) | `.shelf/scripts/`, shelf-local | Codex/Claude |
+| [Change task types](#change-task-types) | task scripts, JSONL templates | Codex/Claude |
 
-**Platform**: `All` = All platforms | `CC` = Claude Code only
+**Platform**: current built-in projections are Codex and Claude Code only.
 
 ---
 
@@ -33,13 +31,13 @@ Common AgentOS Shelf customization scenarios and what files need to be modified.
 
 ```
 .claude/commands/shelf/my-command.md    # Create: Command prompt
-.cursor/commands/my-command.md            # Create: Mirror for Cursor (optional)
+.codex/prompts/shelf-my-command.md      # Create: Codex prompt if needed
 .shelf-local/SKILL.md                   # Update: Document the change
 ```
 
 **Steps**:
 1. Create command file with YAML frontmatter
-2. Mirror to Cursor if needed
+2. Create a Codex prompt if needed
 3. Document in shelf-local
 
 鈫?See `add-command.md` for details.
@@ -54,15 +52,15 @@ Common AgentOS Shelf customization scenarios and what files need to be modified.
 
 ```
 .claude/agents/my-agent.md                          # Create: Agent definition
-.claude/hooks/inject-subagent-context.py            # Modify: Add agent handling
+.codex/agents/my-agent.md                           # Create: Codex agent if needed
 .shelf/tasks/{template}/my-agent.jsonl            # Create: Context template
 .shelf-local/SKILL.md                             # Update: Document the change
 ```
 
 **Optional**:
 ```
-.claude/agents/dispatch.md                          # Modify: If adding to pipeline
-task.json template                                  # Modify: Add to next_action
+.shelf/workflow.md                                  # Modify: If adding to pipeline
+task template code                                  # Modify: Seed JSONL if needed
 ```
 
 鈫?See `add-agent.md` for details.
@@ -104,12 +102,14 @@ task.json template                                  # Modify: Add to next_action
 
 ### Change Verify Commands
 
-**Scenario**: Add or modify Ralph Loop verification commands.
+**Scenario**: Add or modify verification guidance for check agents.
 
 **Files to modify**:
 
 ```
-.shelf/worktree.yaml                    # Modify: verify section
+.shelf/spec/*/quality-guidelines.md     # Modify: project verification commands
+.claude/agents/shelf-check.md           # Modify: Claude-specific check behavior if needed
+.codex/agents/shelf-check.md            # Modify: Codex-specific check behavior if needed
 ```
 
 **Example**:
@@ -132,32 +132,12 @@ verify:
 
 ```
 task.json (in task directories)           # Modify: next_action array
-.claude/agents/dispatch.md                # Modify: Handle new phase
 .claude/agents/{new-phase}.md             # Create: If new agent needed
-.claude/hooks/inject-subagent-context.py  # Modify: If new agent
+.codex/agents/{new-phase}.md              # Create: If Codex agent needed
 .shelf-local/SKILL.md                   # Update: Document the change
 ```
 
 鈫?See `add-phase.md` for details.
-
----
-
-### Add post_create Step
-
-**Scenario**: Add setup steps after worktree creation.
-
-**Files to modify**:
-
-```
-.shelf/worktree.yaml                    # Modify: post_create section
-```
-
-**Example**:
-```yaml
-post_create:
-  - pnpm install
-  - pnpm db:migrate    # Add this
-```
 
 ---
 
@@ -168,7 +148,7 @@ post_create:
 **Files to modify**:
 
 ```
-.claude/hooks/session-start.py            # Modify: Injection logic
+.claude/hooks/shelf-session-start.py      # Modify: reminder logic
 .shelf-local/SKILL.md                   # Update: Document the change
 ```
 

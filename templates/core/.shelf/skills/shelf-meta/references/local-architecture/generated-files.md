@@ -35,15 +35,15 @@ This page only describes files that are visible and editable inside the user pro
 
 ## Platform Directories
 
-Different platforms generate different directories. Common categories:
+Current AgentOS Shelf CLI projections support Codex and Claude Code. Add another platform only when the CLI has a concrete adapter for it.
 
 | Category | Example paths | Purpose |
 | --- | --- | --- |
-| hooks | `.claude/hooks/`, `.codex/hooks/`, `.cursor/hooks/` | Inject session context, workflow-state, and sub-agent context. |
-| settings | `.claude/settings.json`, `.codex/hooks.json`, `.qoder/settings.json` | Tell the platform when to run hooks or plugins. |
-| agents | `.claude/agents/`, `.codex/agents/`, `.kiro/agents/` | Define agents such as `shelf-research`, `shelf-implement`, and `shelf-check`. |
-| skills | `.claude/skills/`, `.agents/skills/`, `.qoder/skills/` | Skills that auto-trigger or can be read by AI. |
-| commands/prompts/workflows | `.cursor/commands/`, `.github/prompts/`, `.windsurf/workflows/` | Explicit user-invoked command or workflow entry points. |
+| hooks | `.claude/hooks/` | Claude Code session-start reminder hook. |
+| settings | `.claude/settings.json` | Registers the Claude Code hook. |
+| agents | `.claude/agents/`, `.codex/agents/` | Define agents such as `shelf-research`, `shelf-implement`, and `shelf-check`. |
+| skills | `.claude/skills/`, `.agents/skills/` | Skills that auto-trigger or can be read by AI. Codex uses the shared `.agents/skills/` layer. |
+| commands/prompts | `.claude/commands/shelf/`, `.codex/prompts/` | Explicit user-invoked continue and finish-work entry points. |
 
 When modifying a platform directory, also confirm whether `.shelf/workflow.md` still describes the same flow.
 
@@ -67,7 +67,7 @@ Editable by default:
 - `.shelf/config.yaml`
 - `.shelf/spec/**`
 - `.shelf/scripts/**`
-- Platform hooks, settings, agents, skills, commands, prompts, and workflows
+- Platform hooks, settings, agents, skills, commands, and prompts
 
 Do not edit by default:
 

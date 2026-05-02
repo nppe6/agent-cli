@@ -15,15 +15,7 @@ When the user wants to change `shelf-research`, `shelf-implement`, or `shelf-che
 | Platform | Path |
 | --- | --- |
 | Claude Code | `.claude/agents/shelf-*.md` |
-| Cursor | `.cursor/agents/shelf-*.md` |
-| OpenCode | `.opencode/agents/shelf-*.md` |
 | Codex | `.codex/agents/shelf-*.md` |
-| Kiro | `.kiro/agents/shelf-*.json` |
-| Gemini CLI | `.gemini/agents/shelf-*.md` |
-| Qoder | `.qoder/agents/shelf-*.md` |
-| CodeBuddy | `.codebuddy/agents/shelf-*.md` |
-| Factory Droid | `.factory/droids/shelf-*.md` |
-| Pi Agent | `.pi/agents/shelf-*.md` |
 
 Use the actual paths in the user project as authoritative.
 

@@ -1,69 +1,41 @@
 # Core Systems Overview
 
-These systems work on **all platforms** (Claude Code, Cursor, and future platforms).
+These systems are file-backed and shared by the current Codex and Claude Code projections.
 
----
-
-## What's in Core?
+## Core Systems
 
 | System | Purpose | Files |
 |--------|---------|-------|
-| Workspace | Session tracking, journals | `.shelf/workspace/` |
+| Workspace | Session tracking and journals | `.shelf/workspace/` |
 | Tasks | Work item tracking | `.shelf/tasks/` |
-| Specs | Coding guidelines | `.shelf/spec/` |
-| Commands | Slash command prompts | `.claude/commands/` |
-| Scripts | Automation utilities | `.shelf/scripts/` (core subset) |
-
----
+| Specs | Project coding guidelines | `.shelf/spec/` |
+| Commands/prompts | Explicit entry points | `.claude/commands/`, `.codex/prompts/` |
+| Scripts | Runtime utilities | `.shelf/scripts/` |
 
 ## Why These Are Portable
 
-All core systems are **file-based**:
-- No special runtime required
-- Read/write with any tool
-- Works in any AI coding environment
+All core systems are file-based:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CORE SYSTEMS (File-Based)                 │
-│                                                              │
-│  .shelf/                                                   │
-│  ├── workspace/     → Journals, session history              │
-│  ├── tasks/         → Task directories, PRDs, context files  │
-│  ├── spec/          → Coding guidelines                      │
-│  └── scripts/       → Python utilities (core subset)         │
-│                                                              │
-│  .claude/                                                    │
-│  └── commands/      → Slash command prompts                  │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
+- `.shelf/` is the durable source of truth.
+- Codex and Claude Code receive platform-specific projections.
+- Agents and prompts read task/spec/workspace files instead of relying on chat memory.
 
 ## Platform Usage
 
+### Codex
+
+Codex reads `AGENTS.md`, shared skills in `.agents/skills/`, agents in `.codex/agents/`, and prompts in `.codex/prompts/`.
+
 ### Claude Code
-All core systems work automatically with hook integration.
 
-### Cursor
-Read files manually at session start:
-1. Read `.shelf/workflow.md`
-2. Read relevant specs from `.shelf/spec/`
-3. Run `python3 .shelf/scripts/task.py current --source` for active work
-4. Read JSONL files for context
+Claude Code reads `CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, `.claude/commands/shelf/`, and the lightweight session-start hook.
 
-### Other Platforms
-Same as Cursor - manual file reading.
-
----
-
-## Documents in This Directory
+## Documents In This Directory
 
 | Document | Content |
 |----------|---------|
-| `files.md` | All files in `.shelf/` with purposes |
+| `files.md` | Files in `.shelf/` and generated platform directories |
 | `workspace.md` | Workspace system, journals, developer identity |
 | `tasks.md` | Task system, directories, JSONL context files |
-| `specs.md` | Spec system, guidelines organization |
-| `scripts.md` | Core scripts (platform-independent) |
+| `specs.md` | Spec system and guideline organization |
+| `scripts.md` | Core scripts |

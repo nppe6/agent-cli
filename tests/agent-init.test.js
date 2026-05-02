@@ -83,10 +83,11 @@ test('injects full Shelf workflow into a clean project', async () => {
   const codexImplementContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-implement.md'), 'utf8');
   const codexCheckContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-check.md'), 'utf8');
   const claudeImplementContent = fs.readFileSync(path.join(projectDirectory, '.claude', 'agents', 'shelf-implement.md'), 'utf8');
-  assert.match(codexImplementContent, /Required: Load Shelf Context First/);
+  assert.match(codexImplementContent, /Required Shelf Context/);
   assert.match(codexImplementContent, /implement\.jsonl/);
   assert.match(codexCheckContent, /check\.jsonl/);
-  assert.doesNotMatch(claudeImplementContent, /Required: Load Shelf Context First/);
+  assert.match(claudeImplementContent, /Required Shelf Context/);
+  assert.match(claudeImplementContent, /implement\.jsonl/);
 });
 
 test('injects core-only workflow when the core stack is selected', async () => {

@@ -1,67 +1,31 @@
 ﻿# Platform File Map
 
-This page lists common AgentOS Shelf file locations in a user project by platform. Whether a platform directory exists in an actual project depends on which `agentos-cli shelf init --<platform>` commands the user ran.
+This page lists current AgentOS Shelf file locations in a user project by platform. The current CLI supports Codex and Claude Code only. Add another platform one at a time when the CLI has a concrete adapter for it.
 
 ## Matrix
 
-| Platform | CLI flag | Main directory | Skill directory | Agent directory | Hooks/extensions |
+| Platform | CLI selection | Main directory | Skill directory | Agent directory | Hooks/prompts |
 | --- | --- | --- | --- | --- | --- |
-| Claude Code | `--claude` | `.claude/` | `.claude/skills/` | `.claude/agents/` | `.claude/hooks/` + `.claude/settings.json` |
-| Cursor | `--cursor` | `.cursor/` | `.cursor/skills/` | `.cursor/agents/` | `.cursor/hooks.json` + `.cursor/hooks/` |
-| OpenCode | `--opencode` | `.opencode/` | `.opencode/skills/` | `.opencode/agents/` | `.opencode/plugins/` |
-| Codex | `--codex` | `.codex/` | `.agents/skills/` | `.codex/agents/`, `.codex/prompts/` | pull-based agent preludes |
-| Kilo | `--kilo` | `.kilocode/` | `.kilocode/skills/` | Usually none | `.kilocode/workflows/` |
-| Kiro | `--kiro` | `.kiro/` | `.kiro/skills/` | `.kiro/agents/` | `.kiro/hooks/` |
-| Gemini CLI | `--gemini` | `.gemini/` | `.gemini/skills/` | `.gemini/agents/` | `.gemini/settings.json` + `.gemini/hooks/` |
-| Antigravity | `--antigravity` | `.agent/` | `.agent/skills/` | Usually none | `.agent/workflows/` |
-| Windsurf | `--windsurf` | `.windsurf/` | `.windsurf/skills/` | Usually none | `.windsurf/workflows/` |
-| Qoder | `--qoder` | `.qoder/` | `.qoder/skills/` | `.qoder/agents/` | `.qoder/hooks/` + `.qoder/settings.json` |
-| CodeBuddy | `--codebuddy` | `.codebuddy/` | `.codebuddy/skills/` | `.codebuddy/agents/` | `.codebuddy/hooks/` + `.codebuddy/settings.json` |
-| GitHub Copilot | `--copilot` | `.github/` | `.github/skills/` | `.github/agents/` | `.github/copilot/hooks/` + prompts |
-| Factory Droid | `--droid` | `.factory/` | `.factory/skills/` | `.factory/droids/` | `.factory/hooks/` + settings |
-| Pi Agent | `--pi` | `.pi/` | `.pi/skills/` | `.pi/agents/` | `.pi/extensions/agentos/` + `.pi/settings.json` |
+| Claude Code | `--tools claude` | `.claude/` | `.claude/skills/` | `.claude/agents/` | `.claude/hooks/`, `.claude/settings.json`, `.claude/commands/shelf/` |
+| Codex | `--tools codex` | `.codex/` | `.agents/skills/` | `.codex/agents/` | `.codex/prompts/`, pull-based agent preludes |
 
 ## Capability Groups
 
-### AgentOS Shelf Sub-Agent Support
+### AgentOS Shelf Agent Support
 
-These platforms usually have `shelf-research`, `shelf-implement`, and `shelf-check` files:
-
-- Claude Code
-- Cursor
-- OpenCode
-- Codex
-- Kiro
-- Gemini CLI
-- Qoder
-- CodeBuddy
-- GitHub Copilot
-- Factory Droid
-- Pi Agent
-
-When changing implementation/check/research behavior, look for the corresponding platform agent files first.
-
-### Main-Session Workflow Platforms
-
-These platforms rely more on workflows/skills to guide the main session:
-
-- Kilo
-- Antigravity
-- Windsurf
-
-When changing behavior, inspect workflows and skills first. Do not assume AgentOS Shelf sub-agents exist.
+Codex and Claude Code both receive `shelf-research`, `shelf-implement`, and `shelf-check` files. Their implementation/check agents load task context by reading the active task and JSONL files.
 
 ### Shared `.agents/skills/`
 
-Codex writes the shared `.agents/skills/` layer. Some tools that support agentskills.io can also read this directory. If the user wants multiple compatible tools to share one skill, consider `.agents/skills/` first, but do not assume every platform reads it.
+Codex writes the shared `.agents/skills/` layer. Claude Code receives tool-scoped copies under `.claude/skills/`.
 
 ## Decision Rules When Modifying Platform Files
 
 1. User specified a platform: modify only that platform directory unless shared workflow/spec files must also change.
-2. User says "all platforms should do this": synchronize equivalent entry points platform by platform; do not modify only one directory.
+2. User says "all platforms should do this": synchronize Codex and Claude Code entry points; add more platforms only if they are actually generated in the project.
 3. User only says "my AI": inspect the configuration directories that actually exist in the project and infer the current AI platform.
 4. User wants project rules: prefer `.shelf/spec/` or a project-local skill.
-5. User wants AgentOS Shelf behavior: edit `.shelf/workflow.md` plus platform hooks/agents/skills/commands.
+5. User wants AgentOS Shelf behavior: edit `.shelf/workflow.md` plus the relevant Codex/Claude hooks, agents, skills, commands, or prompts.
 
 ## When Paths Differ
 

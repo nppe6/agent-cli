@@ -4,8 +4,8 @@ Hooks are the automation layer that connects a platform to AgentOS Shelf. When t
 
 ## Read These Files First
 
-1. Target platform settings/config, such as `.claude/settings.json`, `.codex/hooks.json`, `.cursor/hooks.json`
-2. Target platform hooks directory
+1. Target platform settings/config, currently `.claude/settings.json` for Claude Code hooks
+2. Target platform hooks directory, currently `.claude/hooks/`
 3. `.shelf/scripts/common/active_task.py`
 4. `.shelf/scripts/common/session_context.py`
 5. `.shelf/workflow.md`
@@ -15,9 +15,8 @@ Hooks are the automation layer that connects a platform to AgentOS Shelf. When t
 | Hook | Purpose |
 | --- | --- |
 | session-start | Injects a AgentOS Shelf overview when a session starts, clears, or compacts. |
-| workflow-state | Injects a state hint on each user input. |
-| sub-agent context | Injects PRD/spec/research before an agent starts. |
-| shell session bridge | Lets `task.py` commands in shell see the same session identity. |
+| future workflow-state | Would inject a state hint on each user input. Not installed by the current CLI. |
+| agent pull | Current Codex/Claude agent files read PRD/spec/research after startup. |
 
 ## Modification Steps
 
@@ -33,7 +32,7 @@ First find the session-start hook:
 
 ```text
 .claude/settings.json
-.claude/hooks/session-start.py
+.claude/hooks/shelf-session-start.py
 ```
 
 If the hook ultimately calls `.shelf/scripts/get_context.py` or `session_context.py`, editing the local script is usually more robust than hard-coding content in the hook.
@@ -47,7 +46,7 @@ python3 ./.shelf/scripts/task.py current --source
 python3 ./.shelf/scripts/task.py validate <task>
 ```
 
-If the task and JSONL are correct, determine whether the platform uses hook push or agent pull. For hook push, edit `inject-subagent-context`; for agent pull, edit the agent file.
+If the task and JSONL are correct, edit the relevant `shelf-implement` or `shelf-check` agent file so its read-order instructions match the project.
 
 ## Notes
 

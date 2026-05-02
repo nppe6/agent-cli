@@ -2,7 +2,7 @@
 
 Add a new `/shelf:my-command` command.
 
-**Platform**: All (Claude Code + Cursor)
+**Current platforms**: Claude Code commands and Codex prompts
 
 ---
 
@@ -11,7 +11,7 @@ Add a new `/shelf:my-command` command.
 | File | Action | Required |
 |------|--------|----------|
 | `.claude/commands/shelf/my-command.md` | Create | Yes |
-| `.cursor/commands/my-command.md` | Create | Optional |
+| `.codex/prompts/shelf-my-command.md` | Create | If Codex is enabled |
 | `shelf-local/SKILL.md` | Update | Yes |
 
 ---
@@ -55,11 +55,11 @@ What the command produces.
 
 ---
 
-## Step 2: Mirror to Cursor (Optional)
+## Step 2: Mirror to Codex Prompt Optional
 
-If supporting Cursor, copy to `.cursor/commands/my-command.md`.
+If supporting Codex, create `.codex/prompts/shelf-my-command.md` with matching behavior. Codex prompt files do not use Claude command frontmatter.
 
-**Note**: Cursor commands don't have the `agentos:` prefix.
+Use the same Shelf read order: `.shelf/workflow.md`, active task, PRD, JSONL, and referenced spec/research files.
 
 ---
 
@@ -74,7 +74,7 @@ Update `.claude/skills/shelf-local/SKILL.md`:
 
 #### /shelf:my-command
 - **File**: `.claude/commands/shelf/my-command.md`
-- **Platform**: [ALL]
+- **Platform**: Claude Code; Codex prompt if present
 - **Purpose**: What it does
 - **Added**: 2026-01-31
 - **Reason**: Why it was added
@@ -137,6 +137,6 @@ User should specify which file to review.
 ## Checklist
 
 - [ ] Command file created with proper frontmatter
-- [ ] Mirrored to Cursor (if needed)
+- [ ] Codex prompt created if needed
 - [ ] Documented in shelf-local
 - [ ] Tested the command

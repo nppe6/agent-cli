@@ -9,7 +9,7 @@ Context loading determines when AI reads workflow, task, spec, research, workspa
 3. `.shelf/scripts/common/session_context.py`
 4. `.shelf/scripts/common/task_context.py`
 5. `.shelf/scripts/common/active_task.py`
-6. Current platform hooks or agent files
+6. Current platform prompt, hook, or agent files
 7. The current task's `implement.jsonl` / `check.jsonl`
 
 ## Context Sources
@@ -29,8 +29,8 @@ Context loading determines when AI reads workflow, task, spec, research, workspa
 | Need | Edit point |
 | --- | --- |
 | Inject more/less information in new sessions | `session_context.py` or the platform `session-start` hook. |
-| Change hints on each user input | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. The `inject-workflow-state` hook is parser-only and reads the block verbatim. |
-| Agent did not read specs | Task JSONL, agent prelude, `inject-subagent-context` hook. |
+| Change hints for a workflow state | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. |
+| Agent did not read specs | Task JSONL and agent read-order instructions. |
 | Active task is lost | `active_task.py` and platform session identity propagation. |
 | Change JSONL validation rules | `task_context.py`. |
 
@@ -56,10 +56,7 @@ Context cannot grow without bound. Prefer injecting indexes and paths so the AI 
 
 ## Change Sub-Agent Context
 
-First determine which mode the platform uses:
-
-- hook push: edit the `inject-subagent-context` hook.
-- agent pull: edit the read steps in the corresponding `shelf-implement` / `shelf-check` agent file.
+Current Codex and Claude projections use agent pull: edit the read steps in the corresponding `shelf-implement` / `shelf-check` agent file.
 
 In both modes, make sure the agent ultimately reads:
 
@@ -78,4 +75,4 @@ python3 ./.shelf/scripts/task.py validate <task>
 python3 ./.shelf/scripts/get_context.py --mode packages
 ```
 
-Confirm the task and JSONL are correct before editing hooks/agents.
+Confirm the task and JSONL are correct before editing prompts or agents.

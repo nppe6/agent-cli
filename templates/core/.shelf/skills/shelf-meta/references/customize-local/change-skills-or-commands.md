@@ -54,11 +54,7 @@ If a command only repeats workflow rules, prefer making it reference/read `.shel
 | Platform | Entry directories |
 | --- | --- |
 | Claude Code | `.claude/skills/`, `.claude/commands/` |
-| Cursor | `.cursor/skills/`, `.cursor/commands/` |
-| OpenCode | `.opencode/skills/`, `.opencode/commands/` |
 | Codex | `.agents/skills/`, `.codex/prompts/` |
-| GitHub Copilot | `.github/skills/`, `.github/prompts/` |
-| Kilo / Antigravity / Windsurf | workflows + skills |
 
 ## Add A Project-Local Skill
 
@@ -69,7 +65,7 @@ If the user wants to document team-private customizations, create a project-loca
 鈹斺攢鈹€ SKILL.md
 ```
 
-For multi-platform projects, add equivalent versions in each platform skill directory, or use `.agents/skills/` on platforms that support the shared layer.
+For current multi-platform projects, add `.claude/skills/` for Claude Code and `.agents/skills/` for Codex.
 
 ## Notes
 

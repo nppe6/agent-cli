@@ -19,12 +19,17 @@ model: openrouter/minimax/minimax-m2.7
 
 ## Workflow
 
-1. `git diff --name-only` — list changed files
-2. `git diff` — view specific changes
-3. Read relevant specs in `.shelf/spec/`
-4. Check: directory structure, naming, code patterns, missing types, potential bugs
-5. Fix issues directly with edit tool
-6. Run lint and typecheck to verify
+1. Run `python3 ./.shelf/scripts/task.py current --source` to find the active task path.
+2. Read the task's `prd.md` and `info.md` if present.
+3. Read `<task-path>/check.jsonl`.
+4. For every JSONL row with a `"file"` field, read that referenced spec or research file.
+5. `git diff --name-only` — list changed files
+6. `git diff` — view specific changes
+7. Check: directory structure, naming, code patterns, missing types, potential bugs
+8. Fix issues directly with edit tool
+9. Run lint and typecheck to verify
+
+If there is no active task, no `prd.md`, or no curated JSONL entries, ask the user what context to use instead of guessing.
 
 ## Forbidden Changes
 

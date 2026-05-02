@@ -188,8 +188,8 @@ See [State Management](./state-management.md) for more details.
 
 1. Verify index links work
 2. Create a task with the new specs in JSONL
-3. Verify specs are injected correctly (Claude Code)
-4. Verify specs are readable (Cursor)
+3. Verify `implement.jsonl` / `check.jsonl` reference the new specs when relevant.
+4. Verify Codex and Claude agents can read the referenced specs.
 
 ---
 

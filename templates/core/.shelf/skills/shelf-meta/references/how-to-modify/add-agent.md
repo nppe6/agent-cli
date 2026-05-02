@@ -1,8 +1,8 @@
-﻿# How To: Add Agent
+# How To: Add Agent
 
-Add a new agent type like `my-agent`.
+Add a project-local agent type such as `my-agent`.
 
-**Platform**: Claude Code only
+**Current platforms**: Claude Code and Codex.
 
 ---
 
@@ -10,212 +10,107 @@ Add a new agent type like `my-agent`.
 
 | File | Action | Required |
 |------|--------|----------|
-| `.claude/agents/my-agent.md` | Create | Yes |
-| `.claude/hooks/inject-subagent-context.py` | Modify | Yes |
-| `.shelf/tasks/{template}/my-agent.jsonl` | Create | Yes |
-| `shelf-local/SKILL.md` | Update | Yes |
-| `.claude/agents/dispatch.md` | Modify | If adding to pipeline |
+| `.claude/agents/my-agent.md` | Create if Claude is enabled | Yes for Claude |
+| `.codex/agents/my-agent.md` | Create if Codex is enabled | Yes for Codex |
+| `.shelf/workflow.md` | Update routing if this agent becomes part of the normal flow | Sometimes |
+| `.shelf/scripts/common/task_store.py` | Update only if new tasks should seed a new JSONL file | Sometimes |
+| `shelf-local/SKILL.md` or project-local notes | Document | Recommended |
 
 ---
 
 ## Step 1: Create Agent Definition
 
-Create `.claude/agents/my-agent.md`:
+Create the agent in each enabled platform directory. Keep the name and responsibility the same across platforms.
 
 ```markdown
 ---
 name: my-agent
 description: |
   What this agent specializes in.
-  When it should be used.
-tools: Read, Write, Edit, Bash, Glob, Grep
-model: opus
+tools: read, bash, edit, write, grep, find, ls
 ---
 
 # My Agent
 
+## Required Shelf Context
+
+1. Run `python3 ./.shelf/scripts/task.py current --source`.
+2. Read the active task's `prd.md` and `info.md` if present.
+3. Read the JSONL file this agent uses.
+4. Read every referenced spec or research file before acting.
+
 ## Core Responsibilities
 
-1. Primary responsibility
-2. Secondary responsibility
-3. ...
-
-## Workflow
-
-1. First step
-2. Second step
-3. ...
+1. Primary responsibility.
+2. Secondary responsibility.
 
 ## Forbidden Operations
 
-- Thing 1 (why it's forbidden)
-- Thing 2 (why it's forbidden)
-- git commit (unless explicitly allowed)
+- `git commit`, unless explicitly allowed.
 
 ## Output Format
 
 What the agent should produce.
 ```
 
-### Agent Definition Fields
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Agent identifier |
-| `description` | Yes | What the agent does |
-| `tools` | Yes | Allowed tools |
-| `model` | No | Model to use (opus, sonnet) |
-
 ---
 
-## Step 2: Update Hook
+## Step 2: Decide Context File
 
-Edit `.claude/hooks/inject-subagent-context.py`:
+Reuse `implement.jsonl` or `check.jsonl` when the new agent is part of implementation or review. Create a new JSONL file only when the agent needs a genuinely separate context set.
 
-### Add Constant
-
-```python
-# Near other agent constants
-AGENT_MY_AGENT = "my-agent"
-
-# Add to list
-AGENTS_ALL = (..., AGENT_MY_AGENT)
-```
-
-### Add Context Function
-
-```python
-def get_my_agent_context(repo_root: str, task_dir: str) -> list:
-    """Get context for my-agent."""
-    context_files = []
-
-    # Load from JSONL
-    jsonl_path = os.path.join(task_dir, "my-agent.jsonl")
-    if os.path.exists(jsonl_path):
-        context_files.extend(load_jsonl_context(jsonl_path))
-
-    # Add any additional files
-    # context_files.append({"file": "...", "reason": "..."})
-
-    return context_files
-```
-
-### Add to Main Switch
-
-```python
-elif subagent_type == AGENT_MY_AGENT:
-    context = get_my_agent_context(repo_root, task_dir)
-    new_prompt = build_agent_prompt(
-        agent_name="My Agent",
-        original_prompt=original_prompt,
-        context=context
-    )
-```
-
----
-
-## Step 3: Create JSONL Template
-
-Create context template for task directories.
-
-**Option A**: Add to `task.py init-context`:
-
-```python
-def init_my_agent_context(task_dir, dev_type):
-    jsonl_path = os.path.join(task_dir, "my-agent.jsonl")
-    with open(jsonl_path, "w") as f:
-        # Add relevant specs
-        f.write(json.dumps({
-            "file": ".shelf/spec/guides/index.md",
-            "reason": "Thinking guides"
-        }) + "\n")
-```
-
-**Option B**: Manually create template:
+Example:
 
 ```jsonl
 {"file": ".shelf/spec/guides/index.md", "reason": "Thinking guides"}
-{"file": ".shelf/tasks/{task}/prd.md", "reason": "Requirements"}
 ```
+
+If every new task should seed this file, update the task creation code in `.shelf/scripts/common/task_store.py`.
 
 ---
 
-## Step 4: Add to Pipeline (Optional)
+## Step 3: Add To Workflow Optional
 
-If the agent should be part of the standard workflow:
+If the agent should become part of the standard workflow, update `.shelf/workflow.md`:
 
-### Update task.json Template
+- Add the new routing step in the relevant phase.
+- Add or update the matching `[workflow-state:STATUS]` block.
+- Update any command/prompt text that resumes the workflow.
 
-```json
-"next_action": [
-  {"phase": 1, "action": "implement"},
-  {"phase": 2, "action": "my-agent"},  // Add here
-  {"phase": 3, "action": "check"},
-  {"phase": 4, "action": "finish"}
-]
-```
-
-### Update dispatch.md
-
-Add handling for the new phase:
-
-```markdown
-## Phase Handling
-
-...
-
-### my-agent Phase
-- Call `Task(subagent_type="my-agent")`
-- Wait for completion
-- Proceed to next phase
-```
+Do not reference `dispatch.md` or sub-agent context hooks unless those files actually exist in the project. Current default Shelf agents use pull-based context loading from the agent file.
 
 ---
 
-## Step 5: Document in shelf-local
+## Step 4: Document Locally
 
-Update `.claude/skills/shelf-local/SKILL.md`:
+Record the customization in a project-local skill or note:
 
 ```markdown
 ## Agents
 
-### Added Agents
-
-#### my-agent
-- **File**: `.claude/agents/my-agent.md`
-- **Platform**: [CC]
+### my-agent
+- **Files**: `.claude/agents/my-agent.md`, `.codex/agents/my-agent.md`
 - **Purpose**: What it does
-- **Tools**: Read, Write, Edit, Bash, Glob, Grep
-- **Added**: 2026-01-31
+- **Context**: Which JSONL file it reads
 - **Reason**: Why it was added
-
-### Hooks Changed
-
-#### inject-subagent-context.py
-- **Change**: Added support for `my-agent` type
-- **Lines modified**: XX-YY
-- **Date**: 2026-01-31
 ```
 
 ---
 
 ## Testing
 
-1. Create a task with my-agent.jsonl
-2. Set as current task: `task.py start <task-dir>`
-3. Invoke agent: `Task(subagent_type="my-agent", prompt="Test")`
-4. Verify context injection works
-5. Verify agent behavior matches definition
+1. Create or choose a task with the expected JSONL entries.
+2. Set it as current: `python3 ./.shelf/scripts/task.py start <task-dir>`.
+3. Invoke the new agent from the target platform.
+4. Verify it reads the active task and referenced files before acting.
 
 ---
 
 ## Checklist
 
-- [ ] Agent definition created with proper frontmatter
-- [ ] Hook updated with agent constant
-- [ ] Hook updated with context function
-- [ ] Hook updated with main switch case
-- [ ] JSONL template created
-- [ ] Added to pipeline (if needed)
-- [ ] Documented in shelf-local
-- [ ] Tested the agent
+- [ ] Agent definition created for each enabled platform.
+- [ ] Context read order is explicit.
+- [ ] Workflow routing updated if needed.
+- [ ] Task JSONL seeding updated if needed.
+- [ ] Local customization documented.
+- [ ] Agent tested in the target platform.

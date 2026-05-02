@@ -1,43 +1,29 @@
 ﻿# Hooks And Settings
 
-Hooks/settings are the entry layer that connects a platform to AgentOS Shelf. They decide which scripts, plugins, or extensions a platform runs for which events.
+Hooks/settings are the entry layer that connects a platform to AgentOS Shelf. Current AgentOS Shelf CLI installs a lightweight Claude Code session-start hook. Codex uses pull-based agent preludes instead of hooks.
 
 ## Settings Responsibilities
 
-settings/config files usually register:
+settings/config files may register:
 
 - session-start hook: injects a AgentOS Shelf overview when a new session starts or context resets.
-- workflow-state hook: parses `[workflow-state:STATUS]` blocks from `.shelf/workflow.md` and emits the body matching the current task `status` on each user input. Parser-only; the script does not embed fallback content.
-- sub-agent context hook: injects task context when implementation/check/research agents start.
-- shell/session bridge: lets shell commands see the same AgentOS Shelf session identity.
-- platform plugin or extension entry points.
+- future workflow-state hooks.
+- future shell/session bridges.
 
 Common files:
 
 | Platform | settings/config |
 | --- | --- |
 | Claude Code | `.claude/settings.json` |
-| Cursor | `.cursor/hooks.json` |
 | Codex | Pull-based agent preludes in `.codex/agents/shelf-implement.md` and `.codex/agents/shelf-check.md` |
-| OpenCode | `.opencode/package.json`, `.opencode/plugins/*` |
-| Kiro | `.kiro/hooks/` + platform config |
-| Gemini CLI | `.gemini/settings.json` |
-| Qoder | `.qoder/settings.json` |
-| CodeBuddy | `.codebuddy/settings.json` |
-| GitHub Copilot | `.github/copilot/hooks.json` |
-| Factory Droid | `.factory/settings.json` |
-| Pi Agent | `.pi/settings.json`, `.pi/extensions/agentos/` |
 
-Whether these files exist in a project depends on which `agentos-cli shelf init --<platform>` flags the user ran.
+Whether these files exist in a project depends on which tools were selected with `agentos-cli shelf init --tools codex,claude`.
 
 ## Hook Script Types
 
 | Script | Purpose |
 | --- | --- |
-| `session-start.py` | Generates session-start context. |
-| `inject-workflow-state.py` | Parses `[workflow-state:STATUS]` blocks in `.shelf/workflow.md` and emits the body matching the current task status. Falls back to `Refer to workflow.md for current step.` when no matching block exists. |
-| `inject-subagent-context.py` | Injects PRD, JSONL context, and related spec/research into sub-agents. |
-| `inject-shell-session-context.py` | Lets shell commands inherit AgentOS Shelf session identity. |
+| `shelf-session-start.py` | Prints a lightweight Claude Code reminder to read `AGENTS.md`, `.shelf/workflow.md`, and task context. |
 
 Not every platform has every hook. Do not copy files from another platform just because a platform lacks a hook; first confirm whether that platform supports the corresponding event.
 
@@ -47,8 +33,8 @@ Not every platform has every hook. Do not copy files from another platform just 
 | --- | --- |
 | AI should see more/less context in a new session | Platform `session-start` hook. |
 | Per-turn hint policy should change | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. The hook parses workflow.md verbatim 鈥?no script edit required. |
-| Sub-agent cannot read PRD/spec | `inject-subagent-context` hook or agent prelude. |
-| `task.py current` in shell has no active task | Shell/session bridge hook or platform environment variable configuration. |
+| Sub-agent cannot read PRD/spec | Agent prelude/read-order instructions in `shelf-implement` or `shelf-check`. |
+| `task.py current` in shell has no active task | `SHELF_CONTEXT_ID` or the platform session identity available to shell commands. |
 | Disable an automatic injection | The corresponding hook registration in settings/config. |
 
 ## Modification Principles

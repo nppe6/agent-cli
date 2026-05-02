@@ -17,7 +17,7 @@ This directory is for local AI working in a user project where AgentOS Shelf was
 
 ## General Operation Order
 
-1. **Confirm platform and directories**: inspect which directories exist, such as `.claude/`, `.codex/`, `.cursor/`.
+1. **Confirm platform and directories**: inspect which supported directories exist, such as `.claude/` and `.codex/`.
 2. **Confirm the current active task**: run `python3 ./.shelf/scripts/task.py current --source`.
 3. **Read the local source of truth**: prefer `.shelf/workflow.md`, `.shelf/config.yaml`, and relevant platform files.
 4. **Modify narrowly**: edit only files related to the user's request.
@@ -32,7 +32,7 @@ This directory is for local AI working in a user project where AgentOS Shelf was
 | Task material | `.shelf/tasks/<task>/` |
 | Project specs | `.shelf/spec/` |
 | Runtime scripts | `.shelf/scripts/` |
-| Platform integration | `.claude/`, `.codex/`, `.cursor/`, `.opencode/`, and similar directories |
+| Platform integration | `.claude/`, `.codex/`, and `.agents/skills/` |
 | Shared skill | `.agents/skills/` |
 
 ## Things Not To Do By Default

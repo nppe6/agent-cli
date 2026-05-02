@@ -5,7 +5,7 @@
 ## Core Principles
 
 1. **Plan before code** 鈥?figure out what to do before you start
-2. **Specs injected, not remembered** 鈥?guidelines are injected via hook/skill, not recalled from memory
+2. **Specs loaded, not remembered** 鈥?guidelines are loaded through agent preludes, skills, or prompts, not recalled from memory
 3. **Persist everything** 鈥?research, decisions, and lessons all go to files; conversations get compacted, files don't
 4. **Incremental development** 鈥?one task at a time
 5. **Capture learnings** 鈥?after each task, review and write new knowledge back to spec
@@ -101,10 +101,10 @@ python3 ./.shelf/scripts/get_context.py --mode phase --step <X.Y>  # detailed gu
 
   The 4 [workflow-state:STATUS] blocks embedded in the ## Phase Index section
   below are the SINGLE source of truth for the per-turn `<workflow-state>`
-  breadcrumb that every supported AI platform's UserPromptSubmit hook
-  reads. inject-workflow-state.py (Python platforms) and
-  inject-workflow-state.js (OpenCode plugin) only parse them 鈥?there is no
-  fallback dict baked into the scripts after v0.5.0-beta.20.
+  breadcrumb contract used by Shelf commands, prompts, hooks, and agents.
+  Current AgentOS Shelf CLI projections support Codex and Claude Code. If a
+  future platform is added, add only that platform's concrete parser/entry
+  point here.
 
   STATUS charset: [A-Za-z0-9_-]+. When the hook can't find a tag, it
   degrades to a generic "Refer to workflow.md for current step." line 鈥?  intentionally visible so users notice and fix a broken workflow.md.
@@ -158,7 +158,7 @@ No active task. **A Direct answer** 鈥?pure Q&A / explanation / lookup / chat; 
 - 1.0 Create task `[required 路 once]` (just `task.py create`; status enters planning)
 - 1.1 Requirement exploration `[required 路 repeatable]`
 - 1.2 Research `[optional 路 repeatable]`
-- 1.3 Configure context `[required 路 once]` 鈥?Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi
+- 1.3 Configure context `[required 路 once]` 鈥?Codex and Claude Code
 - 1.4 Activate task `[required 路 once]` (run `task.py start`; status 鈫?in_progress)
 - 1.5 Completion criteria
 
@@ -220,7 +220,7 @@ If you reach this state with uncommitted code, return to Phase 3.4 first 鈥?`/f
 
 When a user request matches one of these intents, load the corresponding skill (or dispatch the corresponding sub-agent) first 鈥?do not skip skills.
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 | User intent | Route |
 |---|---|
@@ -230,25 +230,13 @@ When a user request matches one of these intents, load the corresponding skill (
 | Stuck / fixed same bug several times | `shelf-break-loop` |
 | Spec needs update | `shelf-update-spec` |
 
-**Why `shelf-before-dev` is NOT in this table:** you are not the one writing code 鈥?the `shelf-implement` sub-agent is. Sub-agent platforms get spec context via `implement.jsonl` injection / prelude, not via the main thread loading `shelf-before-dev`.
+**Why `shelf-before-dev` is NOT in this table:** you are not the one writing code 鈥?the `shelf-implement` sub-agent is. The agent reads task context from `implement.jsonl` and the referenced files before editing.
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
-
-[Kilo, Antigravity, Windsurf]
-
-| User intent | Skill |
-|---|---|
-| Wants a new feature / requirement unclear | `shelf-brainstorm` |
-| About to write code / start implementing | `shelf-before-dev` (then implement directly in the main session) |
-| Finished writing / want to verify | `shelf-check` |
-| Stuck / fixed same bug several times | `shelf-break-loop` |
-| Spec needs update | `shelf-update-spec` |
-
-[/Kilo, Antigravity, Windsurf]
+[/Codex, Claude Code]
 
 ### DO NOT skip skills
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 | What you're thinking | Why it's wrong |
 |---|---|
@@ -257,18 +245,7 @@ When a user request matches one of these intents, load the corresponding skill (
 | "I already know the spec" | The spec may have been updated since you last read it; the sub-agent gets the fresh copy, you may not |
 | "Code first, check later" | `shelf-check` surfaces issues you won't notice yourself; earlier is cheaper |
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
-
-[Kilo, Antigravity, Windsurf]
-
-| What you're thinking | Why it's wrong |
-|---|---|
-| "This is simple, just code it" | Simple tasks often grow complex; `shelf-before-dev` takes under a minute and loads the spec context you'll need |
-| "I already thought it through in plan mode" | Plan-mode output lives in memory 鈥?must be persisted to prd.md before code |
-| "I already know the spec" | The spec may have been updated since you last read it; read again |
-| "Code first, check later" | `shelf-check` surfaces issues you won't notice yourself; earlier is cheaper |
-
-[/Kilo, Antigravity, Windsurf]
+[/Codex, Claude Code]
 
 ### Loading Step Detail
 
@@ -317,7 +294,7 @@ Return to this step whenever requirements change and revise `prd.md`.
 
 Research can happen at any time during requirement exploration. It isn't limited to local code 鈥?you can use any available tool (MCP servers, skills, web search, etc.) to look up external information, including third-party library docs, industry practices, API references, etc.
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 Spawn the research sub-agent:
 
@@ -325,13 +302,7 @@ Spawn the research sub-agent:
 - **Task description**: Research <specific question>
 - **Key requirement**: Research output MUST be persisted to `{TASK_DIR}/research/`
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
-
-[Kilo, Antigravity, Windsurf]
-
-Do the research in the main session directly and write findings into `{TASK_DIR}/research/`.
-
-[/Kilo, Antigravity, Windsurf]
+[/Codex, Claude Code]
 
 **Research artifact conventions**:
 - One file per research topic (e.g. `research/auth-library-comparison.md`)
@@ -344,7 +315,7 @@ Brainstorm and research can interleave freely 鈥?pause to research a technical 
 
 #### 1.3 Configure context `[required 路 once]`
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 Curate `implement.jsonl` and `check.jsonl` so the Phase 2 sub-agents get the right spec context. These files were seeded on `task create` with a single self-describing `_example` line; your job here is to fill in real entries.
 
@@ -385,13 +356,7 @@ Delete the seed `_example` line once real entries exist (optional 鈥?it's skipp
 
 Skip when: `implement.jsonl` has agent-curated entries (the seed row alone doesn't count).
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
-
-[Kilo, Antigravity, Windsurf]
-
-Skip this step. Context is loaded directly by the `shelf-before-dev` skill in Phase 2.
-
-[/Kilo, Antigravity, Windsurf]
+[/Codex, Claude Code]
 
 #### 1.4 Activate task `[required 路 once]`
 
@@ -415,11 +380,11 @@ If `task.py start` errors with a session-identity message (no context key from h
 | `research/` has artifacts (complex tasks) | recommended |
 | `info.md` technical design (complex tasks) | optional |
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 | `implement.jsonl` has agent-curated entries (not just the seed row) | 鉁?|
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Codex, Claude Code]
 
 ---
 
@@ -429,18 +394,19 @@ Goal: turn the prd into code that passes quality checks.
 
 #### 2.1 Implement `[required 路 repeatable]`
 
-[Claude Code, Cursor, OpenCode, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Claude Code]
 
 Spawn the implement sub-agent:
 
 - **Agent type**: `shelf-implement`
 - **Task description**: Implement the requirements per prd.md, consulting materials under `{TASK_DIR}/research/`; finish by running project lint and type-check
 
-The platform hook/plugin auto-handles:
-- Reads `implement.jsonl` and injects the referenced spec files into the agent prompt
-- Injects prd.md content
+The `shelf-implement` agent file instructs the agent to:
+- Resolve the active task with `task.py current --source`
+- Read `prd.md`, `info.md`, and `implement.jsonl`
+- Load each referenced spec or research file before coding
 
-[/Claude Code, Cursor, OpenCode, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[/Claude Code]
 
 [Codex]
 
@@ -455,32 +421,9 @@ The Codex sub-agent definition auto-handles the context load requirement:
 
 [/Codex]
 
-[Kiro]
-
-Spawn the implement sub-agent:
-
-- **Agent type**: `shelf-implement`
-- **Task description**: Implement the requirements per prd.md, consulting materials under `{TASK_DIR}/research/`; finish by running project lint and type-check
-
-The platform prelude auto-handles the context load requirement:
-- Reads `implement.jsonl` and injects the referenced spec files into the agent prompt
-- Injects prd.md content
-
-[/Kiro]
-
-[Kilo, Antigravity, Windsurf]
-
-1. Load the `shelf-before-dev` skill to read project guidelines
-2. Read `{TASK_DIR}/prd.md` for requirements
-3. Consult materials under `{TASK_DIR}/research/`
-4. Implement the code per requirements
-5. Run project lint and type-check
-
-[/Kilo, Antigravity, Windsurf]
-
 #### 2.2 Quality check `[required 路 repeatable]`
 
-[Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
+[Codex, Claude Code]
 
 Spawn the check sub-agent:
 
@@ -492,18 +435,7 @@ The check agent's job:
 - Auto-fix issues it finds
 - Run lint and typecheck to verify
 
-[/Claude Code, Cursor, OpenCode, Codex, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi]
-
-[Kilo, Antigravity, Windsurf]
-
-Load the `shelf-check` skill and verify the code per its guidance:
-- Spec compliance
-- lint / type-check / tests
-- Cross-layer consistency (when changes span layers)
-
-If issues are found 鈫?fix 鈫?re-check, until green.
-
-[/Kilo, Antigravity, Windsurf]
+[/Codex, Claude Code]
 
 #### 2.3 Rollback `[on demand]`
 

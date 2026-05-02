@@ -36,12 +36,16 @@ test('platform registry describes Codex and Claude capabilities', () => {
 
   assert.equal(codex.capabilities.openAgentSkills, true);
   assert.equal(codex.capabilities.promptCommands, true);
-  assert.equal(codex.capabilities.pullContextPrelude, true);
+  assert.equal(codex.capabilities.agentPullContext, true);
   assert.equal(codex.capabilities.toolScopedSkills, false);
+  assert.equal(codex.rootDirectory, '.codex');
+  assert.equal(codex.skillsDirectory, null);
   assert.equal(claude.capabilities.hooks, true);
+  assert.equal(claude.capabilities.agentPullContext, true);
   assert.equal(claude.capabilities.commands, true);
   assert.equal(claude.capabilities.settings, true);
   assert.equal(claude.capabilities.toolScopedSkills, true);
+  assert.equal(claude.skillsDirectory, '.claude/skills');
 });
 
 test('monorepo detector reads package.json workspaces', () => {

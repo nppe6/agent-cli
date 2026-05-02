@@ -1,8 +1,8 @@
-﻿# How To: Modify Hook
+# How To: Modify Hook
 
-Change hook behavior for context injection or validation.
+Change Claude Code hook behavior.
 
-**Platform**: Claude Code only
+**Current hook support**: the default CLI installs only a lightweight Claude Code `SessionStart` hook. Codex does not use Shelf hooks; Codex context loading is pull-based through agent and prompt files.
 
 ---
 
@@ -10,259 +10,83 @@ Change hook behavior for context injection or validation.
 
 | File | Action | Required |
 |------|--------|----------|
-| `.claude/hooks/{hook}.py` | Modify | Yes |
-| `.claude/settings.json` | Modify | If changing matcher/timeout |
-| `shelf-local/SKILL.md` | Update | Yes |
+| `.claude/hooks/shelf-session-start.py` | Modify | Yes |
+| `.claude/settings.json` | Modify if changing registration | Sometimes |
+| `shelf-local/SKILL.md` or project-local notes | Document | Recommended |
 
 ---
 
-## Hook Types
+## Current Hook Type
 
 | Hook | File | Purpose |
 |------|------|---------|
-| SessionStart | `session-start.py` | Inject initial context |
-| PreToolUse:Task | `inject-subagent-context.py` | Inject agent context |
-| SubagentStop:check | `ralph-loop.py` | Quality enforcement |
+| SessionStart | `shelf-session-start.py` | Reminds Claude Code to read `AGENTS.md`, `.shelf/workflow.md`, and task context. |
+
+The current default install does not include agent context hooks, workflow-state per-turn hooks, shell bridges, or quality-loop hooks.
 
 ---
 
-## Step 1: Understand Hook Structure
+## Step 1: Understand Current Hook
 
-### Input (stdin)
+Read:
 
-Hooks receive JSON input:
-
-```json
-{
-  "hook_event": "PreToolUse",
-  "tool_name": "Task",
-  "tool_input": {
-    "subagent_type": "implement",
-    "prompt": "..."
-  }
-}
+```text
+.claude/settings.json
+.claude/hooks/shelf-session-start.py
 ```
 
-### Output (stdout)
-
-Hooks output JSON:
-
-```json
-{
-  "result": "continue",
-  "message": "Optional message to inject",
-  "updatedInput": {
-    "prompt": "Modified prompt..."
-  }
-}
-```
-
-### Result Types
-
-| Result | Effect |
-|--------|--------|
-| `continue` | Allow operation, optionally modify |
-| `block` | Prevent operation |
+The default hook prints plain text. It intentionally avoids mutating task state.
 
 ---
 
-## Step 2: Modify Hook Logic
+## Step 2: Modify Session-Start Reminder
 
-### Example: Add Context to Session Start
-
-Edit `.claude/hooks/session-start.py`:
+Example:
 
 ```python
-def get_additional_context():
-    """Add custom context."""
-    context = []
-
-    # Add custom file
-    custom_path = os.path.join(repo_root, ".shelf/custom.md")
-    if os.path.exists(custom_path):
-        with open(custom_path) as f:
-            context.append(f"## Custom Context\n{f.read()}")
-
-    return "\n".join(context)
-
-# In main():
-additional = get_additional_context()
-message = f"{existing_message}\n\n{additional}"
+print("AgentOS Shelf: read AGENTS.md and .shelf/workflow.md before changing code.")
+print("AgentOS Shelf: run agentos-cli shelf workspace context when resuming work.")
 ```
 
-### Example: Add Agent Validation
-
-Edit `.claude/hooks/inject-subagent-context.py`:
-
-```python
-def validate_agent_input(subagent_type, prompt):
-    """Validate agent invocation."""
-    if subagent_type == "implement":
-        if "git commit" in prompt.lower():
-            return False, "Implement agent cannot commit"
-    return True, None
-
-# In main():
-valid, error = validate_agent_input(subagent_type, prompt)
-if not valid:
-    output = {"result": "block", "message": error}
-    print(json.dumps(output))
-    return
-```
-
-### Example: Add Verify Command
-
-Edit `.claude/hooks/ralph-loop.py`:
-
-```python
-# Add to verify commands list
-ADDITIONAL_COMMANDS = ["pnpm test:unit"]
-
-def get_verify_commands():
-    commands = read_worktree_yaml_verify()
-    commands.extend(ADDITIONAL_COMMANDS)
-    return commands
-```
+Keep output short. If the hook becomes large, move durable rules into `.shelf/workflow.md` or `.shelf/spec/` and make the hook point there.
 
 ---
 
-## Step 3: Modify Settings (If Needed)
+## Step 3: Modify Settings Optional
 
-Edit `.claude/settings.json`:
+If the script path or hook event changes, update `.claude/settings.json`.
 
-### Change Timeout
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ...",
-            "timeout": 60  // Increase from 30
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Change Matcher
-
-```json
-{
-  "hooks": {
-    "SubagentStop": [
-      {
-        "matcher": "check|my-agent",  // Add new agent
-        "hooks": [...]
-      }
-    ]
-  }
-}
-```
+Do not register hook files that do not exist. If you add a new hook, create the script, document its event, and test it manually.
 
 ---
 
-## Step 4: Document in shelf-local
-
-Update `.claude/skills/shelf-local/SKILL.md`:
+## Step 4: Document Locally
 
 ```markdown
 ## Hooks Changed
 
-#### session-start.py
+#### shelf-session-start.py
 - **Hook Event**: SessionStart
-- **Change**: Added custom context injection
-- **Lines modified**: 45-60
-- **Date**: 2026-01-31
-- **Reason**: Need to inject project-specific context
-
-#### inject-subagent-context.py
-- **Hook Event**: PreToolUse:Task
-- **Change**: Added validation for implement agent
-- **Lines modified**: 120-135
-- **Date**: 2026-01-31
-- **Reason**: Prevent accidental git commits
+- **Change**: Added project-specific reminder
+- **Reason**: Help new sessions load Shelf context
 ```
 
 ---
 
 ## Testing
 
-### Manual Test
-
 ```bash
-# Test session-start
-python3 .claude/hooks/session-start.py
-
-# Test inject-subagent-context
-echo '{"tool_input":{"subagent_type":"implement","prompt":"test"}}' | \
-  python3 .claude/hooks/inject-subagent-context.py
-
-# Test ralph-loop
-echo '{"subagent_type":"check","output":"test"}' | \
-  python3 .claude/hooks/ralph-loop.py
+python3 .claude/hooks/shelf-session-start.py
 ```
 
-### Integration Test
-
-1. Start new Claude Code session
-2. Verify session-start output
-3. Invoke subagent
-4. Verify context injection
-5. Verify Ralph Loop (for check agent)
-
----
-
-## Common Modifications
-
-### Add File to Session Context
-
-```python
-# session-start.py
-files_to_inject = [
-    ".shelf/workflow.md",
-    ".shelf/custom-context.md",  # Add this
-]
-```
-
-### Skip Injection for Certain Agents
-
-```python
-# inject-subagent-context.py
-SKIP_INJECTION = ["research"]
-
-if subagent_type in SKIP_INJECTION:
-    print(json.dumps({"result": "continue"}))
-    return
-```
-
-### Add Custom Verification
-
-```python
-# ralph-loop.py
-def custom_check():
-    """Custom verification logic."""
-    # Check something
-    return True, None
-
-# In verify():
-ok, error = custom_check()
-if not ok:
-    return False, error
-```
+Then start a new Claude Code session and verify the reminder appears.
 
 ---
 
 ## Checklist
 
-- [ ] Hook logic modified
-- [ ] Settings updated (if needed)
-- [ ] Manual test passed
-- [ ] Integration test passed
-- [ ] Documented in shelf-local
+- [ ] Hook script exists.
+- [ ] Settings register the script path.
+- [ ] Hook output is short and visible.
+- [ ] No nonexistent hook files are referenced.
+- [ ] Local customization documented.

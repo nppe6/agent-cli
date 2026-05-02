@@ -1,124 +1,34 @@
-# Claude Code Features Overview
+# Claude Code Projection
 
-These features require **Claude Code** and don't work on Cursor or other platforms.
+AgentOS Shelf currently installs a lightweight Claude Code projection. It is intentionally smaller than Trellis-style heavy hook automation.
 
----
+## Generated Files
 
-## Why Claude Code Only?
+| Path | Purpose |
+| --- | --- |
+| `CLAUDE.md` | Thin entry file that points Claude Code to `AGENTS.md`. |
+| `.claude/skills/shelf-*` | Claude-local copies of Shelf skills. |
+| `.claude/agents/shelf-*.md` | Research, implement, and check agent definitions. |
+| `.claude/commands/shelf/continue.md` | Continue entry point. |
+| `.claude/commands/shelf/finish-work.md` | Finish-work entry point. |
+| `.claude/settings.json` | Registers the session-start hook. |
+| `.claude/hooks/shelf-session-start.py` | Prints a short reminder to read Shelf context. |
 
-Claude Code provides unique capabilities:
+## Context Loading
 
-| Feature | Claude Code | Why Required |
-|---------|-------------|--------------|
-| Hooks | ✅ | Hook system for lifecycle events |
-| Task tool | ✅ | Subagent invocation with context |
-| `--agent` flag | ✅ | Load agent definitions |
-| `--resume` | ✅ | Session persistence |
-| CLI scripting | ✅ | Automation with `claude` command |
+The default install does not inject PRD/spec content into sub-agent prompts through hooks. Claude agents should pull context themselves:
 
----
+1. Run `python3 ./.shelf/scripts/task.py current --source`.
+2. Read the active task's `prd.md` and `info.md`.
+3. Read `implement.jsonl` or `check.jsonl`.
+4. Read referenced spec and research files.
 
-## Feature Categories
+## Not Installed By Default
 
-### Hooks System
-Automatic context injection and quality enforcement.
+- sub-agent context injection hooks
+- per-turn workflow-state hook
+- quality-loop hook
+- worktree orchestration
+- dispatch agent
 
-| Hook | When | Purpose |
-|------|------|---------|
-| `SessionStart` | Session begins | Inject workflow context |
-| `PreToolUse:Task` | Before subagent | Inject specs via JSONL |
-| `SubagentStop:check` | Check agent stops | Ralph Loop enforcement |
-
-→ See [hooks.md](./hooks.md)
-
-### Agent System
-Specialized agents for different development phases.
-
-| Agent | Purpose |
-|-------|---------|
-| `dispatch` | Orchestrate pipeline |
-| `implement` | Write code |
-| `check` | Review and self-fix |
-| `debug` | Fix issues |
-| `research` | Find patterns |
-| `plan` | Evaluate requirements |
-
-→ See [agents.md](./agents.md)
-
-### Ralph Loop
-Quality enforcement for Check Agent.
-
-- Runs verify commands when Check Agent stops
-- Blocks completion until all pass
-- Max 5 iterations, 30min timeout
-
-→ See [ralph-loop.md](./ralph-loop.md)
-
-### Multi-Session
-Parallel isolated sessions using Git worktrees.
-
-- Each session in separate worktree
-- Own branch, own Claude process
-- Automated PR creation
-
-→ See [multi-session.md](./multi-session.md)
-
-### worktree.yaml
-Configuration for Multi-Session and Ralph Loop.
-
-→ See [worktree-config.md](./worktree-config.md)
-
----
-
-## Documents in This Directory
-
-| Document | Content |
-|----------|---------|
-| `hooks.md` | Hook system, context injection |
-| `agents.md` | Agent types, invocation, context |
-| `ralph-loop.md` | Quality enforcement mechanism |
-| `multi-session.md` | Parallel worktree sessions |
-| `worktree-config.md` | worktree.yaml configuration |
-| `scripts.md` | Claude Code only scripts |
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      CLAUDE CODE INTEGRATION                             │
-│                                                                          │
-│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐        │
-│  │  SessionStart  │    │  PreToolUse    │    │  SubagentStop  │        │
-│  │     Hook       │    │     Hook       │    │     Hook       │        │
-│  └───────┬────────┘    └───────┬────────┘    └───────┬────────┘        │
-│          │                     │                     │                  │
-│          ▼                     ▼                     ▼                  │
-│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐        │
-│  │ session-start  │    │ inject-context │    │  ralph-loop    │        │
-│  │     .py        │    │     .py        │    │     .py        │        │
-│  └───────┬────────┘    └───────┬────────┘    └───────┬────────┘        │
-│          │                     │                     │                  │
-│          ▼                     ▼                     ▼                  │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                     CORE SYSTEMS (File-Based)                    │   │
-│  │  Workspace  │  Tasks  │  Specs  │  Commands  │  Scripts          │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Checking Claude Code Availability
-
-```bash
-# Check if Claude Code is installed
-claude --version
-
-# Verify hooks are configured
-cat .claude/settings.json | grep -A 5 '"hooks"'
-```
-
-If hooks aren't present, Claude Code features won't work.
+If a user project has those files, they are custom local additions. Inspect them directly before editing.

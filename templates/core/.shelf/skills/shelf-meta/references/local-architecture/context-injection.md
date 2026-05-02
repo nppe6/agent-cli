@@ -1,6 +1,6 @@
 # Local Context Injection System
 
-AgentOS Shelf context injection aims to make AI read the right files at the right time instead of relying on model memory. In a user project, injection is implemented by `.shelf/` scripts together with platform hooks, agents, and skills.
+AgentOS Shelf context loading aims to make AI read the right files at the right time instead of relying on model memory. In a user project, context is loaded through `.shelf/` scripts together with platform agents, prompts, hooks, and skills.
 
 ## Injected Context Types
 
@@ -10,23 +10,21 @@ AgentOS Shelf context injection aims to make AI read the right files at the righ
 | workflow context | `.shelf/workflow.md` | Current AgentOS Shelf flow and next action. |
 | spec context | `.shelf/spec/` + task JSONL | Specs that must be followed during implementation/checking. |
 | task context | `.shelf/tasks/<task>/prd.md`, `info.md`, `research/` | Current task requirements, design, and research. |
-| platform context | Platform hooks/settings/agents | Lets different AI tools read the files above through their own mechanisms. |
+| platform context | Platform agents, prompts, hooks, and settings | Lets Codex and Claude Code read the files above through their own mechanisms. |
 
 ## session-start
 
-Platforms with session-start support inject a AgentOS Shelf overview when a session starts, clears, compacts, or receives a similar event. Injected content usually includes:
+Claude Code currently receives a lightweight session-start reminder when a session starts. Codex does not use Shelf hooks; Codex users rely on `AGENTS.md`, `.agents/skills/`, `.codex/agents/`, and `.codex/prompts/`.
 
-- workflow summary.
-- current task status.
-- active tasks.
-- spec index paths.
-- developer identity and git status.
+- Read `AGENTS.md`.
+- Read `.shelf/workflow.md`.
+- Use `.shelf/tasks` for PRD, `implement.jsonl`, and `check.jsonl` context.
 
-If the user feels the AI does not know the current task in a new session, first check whether the platform's session-start hook or equivalent mechanism is installed and running.
+If the user feels the AI does not know the current task in a new session, first run `agentos-cli shelf workspace context` and `agentos-cli shelf task current --source`, then inspect the relevant platform prompt or agent file.
 
 ## workflow-state
 
-workflow-state is a lightweight hint injected around each user turn. Based on current task status, it selects a block from `.shelf/workflow.md`, such as `no_task`, `planning`, `in_progress`, or `completed`.
+workflow-state blocks are the source for state-specific guidance in `.shelf/workflow.md`, such as `no_task`, `planning`, `in_progress`, or `completed`. The current CLI does not install a per-turn workflow-state hook; commands, prompts, skills, and agents should read `.shelf/workflow.md` directly.
 
 If the user wants to change "what the AI should do next in a given state," edit the corresponding state block in `.shelf/workflow.md` first.
 
@@ -34,8 +32,8 @@ If the user wants to change "what the AI should do next in a given state," edit 
 
 Implement and check agents need task context. AgentOS Shelf has two loading modes:
 
-1. **hook push**: a platform hook injects `prd.md` and the files referenced by `implement.jsonl` / `check.jsonl` before the agent starts.
-2. **agent pull**: the agent definition instructs the agent to read the active task, PRD, and JSONL context after startup.
+1. **agent pull**: the agent definition instructs the agent to read the active task, PRD, and JSONL context after startup.
+2. **prompt pull**: a command or prompt tells the main session to run Shelf context commands and read the relevant files.
 
 In both modes, JSONL files in the task directory are the key interface.
 
@@ -51,17 +49,17 @@ Readers should skip seed rows without a `file` field. When configuring JSONL, th
 
 ## Active Task And Context Key
 
-Active task state lives in `.shelf/.runtime/sessions/` and is isolated per session. Hooks try to resolve the context key from platform events, environment variables, transcript paths, or `SHELF_CONTEXT_ID`.
+Active task state lives in `.shelf/.runtime/sessions/` and is isolated per session. Scripts try to resolve the context key from platform/session environment variables or `SHELF_CONTEXT_ID`.
 
-If shell commands cannot see the same context key, `task.py current --source` may report no active task. In that case, check whether the platform passes session identity into the shell instead of hand-writing a global current-task file.
+If shell commands cannot see the same context key, `task.py current --source` may report no active task. In that case, use `SHELF_CONTEXT_ID` or rerun `task.py start <task-dir>` in the current session.
 
 ## Local Customization Points
 
 | Need | Edit location |
 | --- | --- |
-| Change session-start injected content | The platform's `session-start` hook or plugin file. |
-| Change per-turn workflow-state rules | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. The platform workflow-state hook parses these blocks verbatim and embeds no fallback text. |
-| Change how sub-agents read context | Platform agent definitions, the `inject-subagent-context` hook, or agent preludes. |
+| Change session-start reminder content | `.claude/hooks/shelf-session-start.py`. |
+| Change workflow-state rules | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. |
+| Change how sub-agents read context | Platform agent definitions or command/prompt files. |
 | Change JSONL validation/display | `.shelf/scripts/common/task_context.py`. |
 | Change active task resolution | `.shelf/scripts/common/active_task.py`. |
 
