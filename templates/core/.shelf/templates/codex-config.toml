@@ -1,0 +1,13 @@
+# Project-scoped Codex defaults for AgentOS Shelf workflows.
+# Codex loads this after the user-level ~/.codex/config.toml.
+
+# Keep AGENTS.md as the primary project instruction file.
+project_doc_fallback_filenames = ["AGENTS.md"]
+
+# Shelf's Codex hooks require the Codex hook feature to be enabled globally.
+# Add this to ~/.codex/config.toml:
+#
+#   [features]
+#   codex_hooks = true
+#
+# Without the global feature flag, .codex/hooks.json is ignored.

@@ -23,6 +23,25 @@ Bring the generated Shelf workspace into tighter alignment with the Trellis core
 4. The project must make an explicit decision about generated agent names: simple names (`research`, `implement`, `check`) or namespaced names (`shelf-research`, `shelf-implement`, `shelf-check`).
 5. The bootstrap task must guide the user from empty specs to real project conventions.
 6. Future platform expansion must use capability flags rather than ad hoc copy rules.
+7. Codex must stay a first-class current platform, not be simplified into a generic markdown-only projection. Shelf should align with Trellis' Codex-native shape while keeping Shelf naming.
+
+## 2026-05-03 Codex Projection Finding
+
+Local comparison against an initialized Trellis project found that the current Shelf Codex projection was narrowed too far:
+
+- Trellis generates `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/*.py`, and `.codex/agents/*.toml`.
+- Current Shelf generated `.codex/agents/*.md` and `.codex/prompts/*.md` only.
+- Claude looked closer because its native projection is already markdown agents plus commands/settings/hooks.
+
+This is not the same class of issue as unsupported Cursor/Kiro/Gemini platform drift. Codex and Claude are the current supported platforms, so Codex should use its native project-scoped integration rather than a lowest-common-denominator layout.
+
+Design adjustment:
+
+- Keep the platform scope limited to Codex and Claude.
+- Restore Codex-native files with Shelf naming: `.codex/agents/shelf-*.toml`, `.codex/config.toml`, `.codex/hooks.json`, and `.codex/hooks/shelf-*.py`.
+- Keep `.agents/skills/shelf-*` as the shared open skill layer.
+- Keep `.codex/prompts/shelf-*.md` for prompt commands, but do not treat prompts as a replacement for Codex project config/hooks/agents.
+- After Codex is corrected, use the same Trellis source comparison to review Claude for subtler mismatches in settings, command semantics, hook behavior, and agent context loading.
 
 ## Proposed Work Slices
 
@@ -61,11 +80,31 @@ Acceptance criteria:
 Document and test:
 
 - Claude: `CLAUDE.md`, `.claude/skills/shelf-*`, `.claude/agents/*`, `.claude/commands/shelf/continue.md`, `.claude/commands/shelf/finish-work.md`, hooks/settings if enabled.
-- Codex: `AGENTS.md`, `.agents/skills/shelf-*`, `.codex/agents/*`, no shared workflow skills in `.codex/skills`.
+- Codex: `AGENTS.md`, `.agents/skills/shelf-*`, `.codex/agents/shelf-*.toml`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/shelf-*.py`, optional `.codex/prompts/shelf-*.md`, no shared workflow skills in `.codex/skills`.
 
 Decision point:
 
-- Either add `.codex/prompts/shelf-continue.md` and `.codex/prompts/shelf-finish-work.md`, or explicitly defer Codex prompt commands in README and roadmap.
+- Preserve `.codex/prompts/shelf-continue.md` and `.codex/prompts/shelf-finish-work.md` as prompt-command affordances while restoring Codex-native hooks/config/TOML agents.
+
+### Slice 3b: Codex Native Projection Repair
+
+Implement and test:
+
+- Convert projected Codex agents from markdown to TOML while retaining the same agent instructions.
+- Add project-scoped `.codex/config.toml` with `project_doc_fallback_filenames = ["AGENTS.md"]`.
+- Add `.codex/hooks.json` for `SessionStart` and `UserPromptSubmit`.
+- Add Shelf equivalents of Trellis' session-start and workflow-state hooks, adapted to `.shelf/`, `shelf-*`, and the current Shelf task/session scripts.
+- Keep hook behavior truthful: Codex hooks require the user's global Codex hook feature flag, and implement/check agents must still pull task context themselves.
+- Add tests that initialize a Codex project and assert the Trellis-aligned file shape.
+
+### Slice 3c: Claude Reverse Alignment Pass
+
+After Codex repair, compare the generated Claude projection against Trellis' Claude source:
+
+- Confirm `.claude/agents/shelf-*.md` carry equivalent context-loading responsibilities.
+- Confirm `.claude/commands/shelf/*` are semantic equivalents of the supported Trellis command subset.
+- Confirm `.claude/settings.json` hook wiring matches the intended lightweight Shelf session-start model.
+- Document any intentionally deferred Trellis behavior, especially heavy context injection and per-turn workflow-state injection.
 
 ### Slice 4: Bootstrap Task Quality
 
@@ -89,13 +128,12 @@ After local testing:
 - Run `rg -n "agentos-|/agentos|agentos-local" templates/core/.shelf README.md docs` and classify every remaining hit as legacy-only or a bug.
 - Run `rg -n "^name:" templates/core/.shelf/skills` and confirm every built-in skill is `shelf-*`.
 - Run tests covering `shelf init`, `shelf doctor`, `shelf sync`, `shelf update`, and `shelf skills import`.
-- Initialize a temporary project with Codex only and confirm `.agents/skills` exists while `.codex/skills` is not used for shared workflow skills.
+- Initialize a temporary project with Codex only and confirm `.agents/skills` exists, `.codex/agents/shelf-*.toml` exists, `.codex/config.toml` exists, `.codex/hooks.json` exists, and `.codex/skills` is not used for shared workflow skills.
 - Initialize a temporary project with Claude only and confirm `.claude/skills` and `.claude/commands/shelf` are generated.
 - Run `agentos-cli shelf doctor` in both temporary projects.
 
 ## Open Decisions
 
-- Should generated agents be namespaced as `shelf-*`?
-- Should Codex receive prompt commands now, or should the current skill/agent flow remain the Codex MVP?
+- Should `.codex/skills/` be created as an empty platform-specific extension point, or omitted until Shelf has real Codex-only skills?
 - Should `shelf-meta` keep a project-local customization template named `shelf-local` instead of `agentos-local`?
 - Should `shelf finish-work` become a CLI wrapper in addition to the AI command/skill workflow?

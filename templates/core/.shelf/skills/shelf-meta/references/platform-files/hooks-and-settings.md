@@ -1,6 +1,6 @@
 ﻿# Hooks And Settings
 
-Hooks/settings are the entry layer that connects a platform to AgentOS Shelf. Current AgentOS Shelf CLI installs a lightweight Claude Code session-start hook. Codex uses pull-based agent preludes instead of hooks.
+Hooks/settings are the entry layer that connects a platform to AgentOS Shelf. Current AgentOS Shelf CLI installs Claude Code and Codex session-start wiring, plus a Codex per-turn workflow-state hook. Implement/check agents still pull task context from `.shelf/tasks` before editing.
 
 ## Settings Responsibilities
 
@@ -15,7 +15,7 @@ Common files:
 | Platform | settings/config |
 | --- | --- |
 | Claude Code | `.claude/settings.json` |
-| Codex | Pull-based agent preludes in `.codex/agents/shelf-implement.md` and `.codex/agents/shelf-check.md` |
+| Codex | `.codex/config.toml` and `.codex/hooks.json` |
 
 Whether these files exist in a project depends on which tools were selected with `agentos-cli shelf init --tools codex,claude`.
 
@@ -23,7 +23,9 @@ Whether these files exist in a project depends on which tools were selected with
 
 | Script | Purpose |
 | --- | --- |
-| `shelf-session-start.py` | Prints a lightweight Claude Code reminder to read `AGENTS.md`, `.shelf/workflow.md`, and task context. |
+| `.claude/hooks/shelf-session-start.py` | Prints a lightweight Claude Code reminder to read `AGENTS.md`, `.shelf/workflow.md`, and task context. |
+| `.codex/hooks/shelf-session-start.py` | Emits Codex SessionStart context from `.shelf/scripts/get_context.py`. |
+| `.codex/hooks/shelf-inject-workflow-state.py` | Emits a Codex UserPromptSubmit breadcrumb from `.shelf/workflow.md` and the active task. |
 
 Not every platform has every hook. Do not copy files from another platform just because a platform lacks a hook; first confirm whether that platform supports the corresponding event.
 
@@ -33,7 +35,7 @@ Not every platform has every hook. Do not copy files from another platform just 
 | --- | --- |
 | AI should see more/less context in a new session | Platform `session-start` hook. |
 | Per-turn hint policy should change | `[workflow-state:STATUS]` block in `.shelf/workflow.md`. The hook parses workflow.md verbatim 鈥?no script edit required. |
-| Sub-agent cannot read PRD/spec | Agent prelude/read-order instructions in `shelf-implement` or `shelf-check`. |
+| Sub-agent cannot read PRD/spec | Agent read-order instructions in `shelf-implement` or `shelf-check`. |
 | `task.py current` in shell has no active task | `SHELF_CONTEXT_ID` or the platform session identity available to shell commands. |
 | Disable an automatic injection | The corresponding hook registration in settings/config. |
 
@@ -48,7 +50,7 @@ Not every platform has every hook. Do not copy files from another platform just 
 
 If the user says "AI did not read AgentOS Shelf state":
 
-1. Check whether the platform settings register the hook.
+1. Check whether the platform settings/config register the hook.
 2. Check whether the hook file exists.
 3. Manually run the `.shelf/scripts/get_context.py` or `task.py current --source` command that the hook depends on.
 4. Check whether active task state exists in `.shelf/.runtime/sessions/`.

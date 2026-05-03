@@ -13,10 +13,10 @@ Do not add documentation, settings, hooks, or path tables for another platform u
 | --- | --- | --- |
 | Root entry file | `AGENTS.md` | `CLAUDE.md` |
 | Shared skills | `.agents/skills/shelf-*` | `.claude/skills/shelf-*` |
-| Agents | `.codex/agents/shelf-*.md` | `.claude/agents/shelf-*.md` |
+| Agents | `.codex/agents/shelf-*.toml` | `.claude/agents/shelf-*.md` |
 | User entry points | `.codex/prompts/shelf-*.md` | `.claude/commands/shelf/*.md` |
-| Hook behavior | None by default | Lightweight `SessionStart` reminder |
-| Context loading | Agent/prompt pull | Agent/command pull plus startup reminder |
+| Hook behavior | SessionStart plus UserPromptSubmit hooks when Codex hooks are enabled globally | Lightweight `SessionStart` reminder |
+| Context loading | Hook breadcrumbs plus agent/prompt pull | Agent/command pull plus startup reminder |
 
 ## Context Loading Model
 
@@ -35,7 +35,6 @@ Implementation and check agents must keep this read order explicit in their agen
 The default CLI does not install:
 
 - other platform projections beyond Codex and Claude Code.
-- Codex hooks or `.codex/hooks.json`.
 - Claude sub-agent context injection hooks.
 - Quality-loop hooks or worktree orchestration.
 

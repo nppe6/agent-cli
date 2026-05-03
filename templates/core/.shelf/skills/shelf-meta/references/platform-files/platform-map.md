@@ -7,7 +7,7 @@ This page lists current AgentOS Shelf file locations in a user project by platfo
 | Platform | CLI selection | Main directory | Skill directory | Agent directory | Hooks/prompts |
 | --- | --- | --- | --- | --- | --- |
 | Claude Code | `--tools claude` | `.claude/` | `.claude/skills/` | `.claude/agents/` | `.claude/hooks/`, `.claude/settings.json`, `.claude/commands/shelf/` |
-| Codex | `--tools codex` | `.codex/` | `.agents/skills/` | `.codex/agents/` | `.codex/prompts/`, pull-based agent preludes |
+| Codex | `--tools codex` | `.codex/` | `.agents/skills/` | `.codex/agents/` | `.codex/prompts/`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/` |
 
 ## Capability Groups
 

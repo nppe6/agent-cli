@@ -14,7 +14,7 @@ AgentOS Shelf context loading aims to make AI read the right files at the right 
 
 ## session-start
 
-Claude Code currently receives a lightweight session-start reminder when a session starts. Codex does not use Shelf hooks; Codex users rely on `AGENTS.md`, `.agents/skills/`, `.codex/agents/`, and `.codex/prompts/`.
+Claude Code currently receives a lightweight session-start reminder when a session starts. Codex receives project-scoped hook wiring through `.codex/hooks.json` and `.codex/hooks/`, while still relying on `AGENTS.md`, `.agents/skills/`, `.codex/agents/`, and `.codex/prompts/` for explicit pull-based work.
 
 - Read `AGENTS.md`.
 - Read `.shelf/workflow.md`.

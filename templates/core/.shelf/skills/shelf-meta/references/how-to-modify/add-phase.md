@@ -54,7 +54,7 @@ Do not update nonexistent `dispatch.md` or hook files. Current default Shelf flo
 If the phase uses a new agent, create equivalent agent files for enabled platforms:
 
 - `.claude/agents/<agent>.md`
-- `.codex/agents/<agent>.md`
+- `.codex/agents/<agent>.toml`
 
 The agent must explicitly read active task context and the relevant JSONL file.
 

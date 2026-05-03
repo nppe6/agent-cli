@@ -55,7 +55,11 @@ test('injects full Shelf workflow into a clean project', async () => {
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'commands', 'shelf', 'finish-work.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'settings.json')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude', 'hooks', 'shelf-session-start.py')), true);
-  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-implement.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-implement.toml')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'config.toml')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'hooks.json')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'hooks', 'shelf-session-start.py')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'hooks', 'shelf-inject-workflow-state.py')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'prompts', 'shelf-continue.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'prompts', 'shelf-finish-work.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'planning')), false);
@@ -80,12 +84,19 @@ test('injects full Shelf workflow into a clean project', async () => {
   assert.match(bootstrapPrd, /\.shelf\/spec/);
   assert.doesNotMatch(bootstrapPrd, /\.trellis/);
 
-  const codexImplementContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-implement.md'), 'utf8');
-  const codexCheckContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-check.md'), 'utf8');
+  const codexImplementContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-implement.toml'), 'utf8');
+  const codexCheckContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-check.toml'), 'utf8');
+  const codexConfigContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'config.toml'), 'utf8');
+  const codexHooksContent = fs.readFileSync(path.join(projectDirectory, '.codex', 'hooks.json'), 'utf8');
   const claudeImplementContent = fs.readFileSync(path.join(projectDirectory, '.claude', 'agents', 'shelf-implement.md'), 'utf8');
+  assert.match(codexImplementContent, /name = "shelf-implement"/);
+  assert.match(codexImplementContent, /developer_instructions = """/);
   assert.match(codexImplementContent, /Required Shelf Context/);
   assert.match(codexImplementContent, /implement\.jsonl/);
   assert.match(codexCheckContent, /check\.jsonl/);
+  assert.match(codexConfigContent, /project_doc_fallback_filenames = \["AGENTS\.md"\]/);
+  assert.match(codexHooksContent, /shelf-session-start\.py/);
+  assert.match(codexHooksContent, /shelf-inject-workflow-state\.py/);
   assert.match(claudeImplementContent, /Required Shelf Context/);
   assert.match(claudeImplementContent, /implement\.jsonl/);
 });
@@ -98,7 +109,9 @@ test('injects core-only workflow when the core stack is selected', async () => {
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills', 'shelf-before-dev', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills', 'shelf-check', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-research.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-research.toml')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'config.toml')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'hooks.json')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'prompts', 'shelf-continue.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'ui-ux-pro-max')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'manifest.json')), true);
@@ -305,7 +318,7 @@ test('injects only codex files when codex is the only selected tool', async () =
   assert.equal(fs.existsSync(path.join(projectDirectory, 'AGENTS.md')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'skills', 'shelf-brainstorm', 'SKILL.md')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.agents', 'skills', 'shelf-brainstorm', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-check.md')), true);
+  assert.equal(fs.existsSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-check.toml')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, 'CLAUDE.md')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.claude')), false);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf')), true);

@@ -35,7 +35,7 @@ Do not edit upstream package files for a local project customization.
 
 ```markdown
 #### my-agent
-- **Files**: `.claude/agents/my-agent.md`, `.codex/agents/my-agent.md`
+- **Files**: `.claude/agents/my-agent.md`, `.codex/agents/my-agent.toml`
 - **Context loading**: active task -> PRD -> JSONL -> referenced files
 - **Purpose**:
 - **Reason**:
@@ -68,6 +68,6 @@ Do not edit upstream package files for a local project customization.
 ```markdown
 ### 2026-01-31 - Change: Check Verification
 - Updated `.shelf/spec/frontend/quality-guidelines.md`.
-- Updated `.claude/agents/shelf-check.md` and `.codex/agents/shelf-check.md`.
+- Updated `.claude/agents/shelf-check.md` and `.codex/agents/shelf-check.toml`.
 - Reason: project verification commands needed clearer guidance.
 ```

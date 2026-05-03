@@ -23,7 +23,7 @@ Agent files should not become generic chat prompts. They should define input sou
 | Platform | Agent path |
 | --- | --- |
 | Claude Code | `.claude/agents/shelf-*.md` |
-| Codex | `.codex/agents/shelf-*.md` |
+| Codex | `.codex/agents/shelf-*.toml` |
 
 ## Two Context Loading Modes
 

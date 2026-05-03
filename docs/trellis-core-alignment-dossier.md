@@ -49,14 +49,14 @@ AgentOS Shelf is aligned with this foundation when it treats `.shelf/` as the so
 | Shared open skills | Codex receives `.agents/skills/*` from `.shelf/skills`; Claude receives `.claude/skills/*`. | Strong and now consistent with Trellis direction |
 | Claude scoped skills | Claude gets `.claude/skills/*` because Claude Code has its own skill directory. | Strong |
 | Codex skill placement | Current Shelf no longer writes shared workflow skills to `.codex/skills`; it uses `.agents/skills`. | Strong |
-| Agents | `.shelf/agents` projects to `.codex/agents` and `.claude/agents`; Codex implement/check get a pull-based context prelude. | Partial but directionally correct |
+| Agents | `.shelf/agents` projects to `.codex/agents` and `.claude/agents`; implement/check agents pull task context before work. | Partial but directionally correct |
 | Task lifecycle | `.shelf/tasks`, `task.py`, `task.json`, `prd.md`, `implement.jsonl`, `check.jsonl`, archive, list, current, and active task runtime exist. | Strong foundation |
 | Session active task | Shelf uses `.shelf/.runtime/sessions/` and `SHELF_CONTEXT_ID`. | Strong foundation |
 | Workspace memory | `developer init`, `workspace context`, `workspace add-session`, journals, and workspace README exist. | Good, mostly explicit rather than automatic |
 | Spec system | Backend/frontend/guides specs and `spec scaffold` exist. | Good, but needs real-project bootstrap quality |
 | Update safety | `manifest.json`, `template-hashes.json`, `update-manifest.json`, backups, protected paths, and `update.skip` exist. | Good lightweight equivalent |
 | Multi-platform registry | `platform-registry.js` has capability flags for Codex and Claude. | Good small-scale base |
-| Full hook matrix | Claude has lightweight hook/settings behavior; Codex is pull-based. | Intentional partial |
+| Full hook matrix | Claude has lightweight hook/settings behavior; Codex should have project-scoped config/hooks plus pull-based agent context. | Intentional partial |
 | Marketplace/spec packs | Not implemented beyond core scaffolding. | Deferred |
 | Worktree orchestration | Not implemented. | Deferred |
 
@@ -94,9 +94,9 @@ Trellis 0.5 deliberately reduced slash commands. On agent-capable platforms, ses
 Current Shelf:
 
 - Claude has `continue` and `finish-work` command templates under `.claude/commands/shelf/`.
-- Codex currently relies on `.agents/skills` and `.codex/agents`; it does not generate `.codex/prompts`.
+- Codex has `.codex/prompts/shelf-continue.md` and `.codex/prompts/shelf-finish-work.md`, plus native `.codex/agents/*.toml`, config, and hooks.
 
-This is acceptable as a lightweight MVP, but docs should say clearly that Codex command/prompt support is not yet implemented, and that Codex users currently use skills/agents plus CLI commands.
+This is now aligned as a Codex-native projection plus prompt-command affordances; docs should keep the distinction clear so prompts are not treated as the entire Codex integration.
 
 ### 4. Hook Behavior Is Intentionally Partial
 
@@ -109,6 +109,24 @@ This is not a core mismatch. It is a capability gap that should remain planned, 
 Trellis official docs repeatedly emphasize that the initial `00-bootstrap-guidelines` task turns empty spec placeholders into real project conventions. Shelf has the bootstrap task and spec folders, but the generated experience must clearly guide a user through turning a Vue/admin project or other brownfield repo into grounded specs.
 
 This should stay near the top of the roadmap because it is where users first feel whether the workflow is real or decorative.
+
+### 6. Codex Was Over-Simplified During Scope Tightening
+
+After comparing an initialized Trellis project with an initialized Shelf project, Codex showed a concrete projection mismatch:
+
+- Trellis: `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/*.py`, `.codex/agents/*.toml`, and optional platform-specific `.codex/skills/`.
+- Shelf before repair: `.codex/agents/*.md` and `.codex/prompts/*.md`.
+- Shelf after repair: `.codex/agents/*.toml`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/*.py`, and `.codex/prompts/*.md`.
+
+This is not unsupported-platform drift. Codex is one of the two current target platforms, so removing nonexistent Cursor/Kiro/Gemini-style projection is correct, but flattening Codex into markdown-only files is not aligned with Trellis' current Codex integration model.
+
+Required correction:
+
+- Keep Codex and Claude as the only current platforms.
+- Restore Codex-native TOML agents, project config, and hook wiring with Shelf naming.
+- Keep shared skills in `.agents/skills/`.
+- Keep prompt commands as an additional affordance, not a replacement for Codex config/hooks.
+- After Codex is repaired, compare Claude against Trellis with the same rigor to catch semantic mismatches that are less obvious from the directory tree.
 
 ## Consistency Verdict
 
@@ -123,12 +141,13 @@ The core absorbed implementation is consistent with Trellis in these areas:
 - Workspace/developer memory.
 - Specs as durable contracts.
 - Conservative update and sync safety.
-- Pull-based context prelude for Codex.
+- Pull-based context loading for implement/check agents.
 
 The current implementation is not yet fully consistent in these areas:
 
 - Generated workflow/meta references still mix `agentos-*` and `shelf-*`.
 - Platform command behavior is not fully documented against Trellis' command-vs-skill distinction.
+- Codex projection has been repaired toward Trellis-style `.toml` agents, config, and hooks; continue validating behavior in real Codex sessions.
 - Claude context injection is not equivalent to Trellis' stronger hook path.
 - Agent naming has not been intentionally settled.
 - Multi-platform support remains intentionally narrow.
@@ -141,7 +160,7 @@ This dossier should feed the next planning slice:
 
 1. Normalize Shelf names and command namespaces across `workflow.md`, `shelf-meta`, and generated docs.
 2. Decide and document generated agent naming.
-3. Add explicit Codex prompt/command support or document that it is deferred.
+3. Repair Codex native projection while preserving prompt/command support.
 4. Strengthen the bootstrap task as the first real project-spec workflow.
-5. Keep Claude hook enrichment planned but gated by local testing evidence.
+5. Run a Claude reverse-alignment pass after Codex repair; keep Claude hook enrichment planned but gated by local testing evidence.
 6. Expand platforms only after the Codex/Claude projection model stops drifting.

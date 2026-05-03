@@ -37,6 +37,8 @@ test('platform registry describes Codex and Claude capabilities', () => {
   assert.equal(codex.capabilities.openAgentSkills, true);
   assert.equal(codex.capabilities.promptCommands, true);
   assert.equal(codex.capabilities.agentPullContext, true);
+  assert.equal(codex.capabilities.hooks, true);
+  assert.equal(codex.capabilities.settings, true);
   assert.equal(codex.capabilities.toolScopedSkills, false);
   assert.equal(codex.rootDirectory, '.codex');
   assert.equal(codex.skillsDirectory, null);

@@ -51,12 +51,16 @@ test('init writes manifest and template hashes for a single-tool install', async
   assert.match(manifest.generatedFiles.join('\n'), /AGENTS\.md/);
   assert.doesNotMatch(manifest.generatedFiles.join('\n'), /\.codex\/skills\/shelf-brainstorm\/SKILL\.md/);
   assert.match(manifest.generatedFiles.join('\n'), /\.agents\/skills\/shelf-brainstorm\/SKILL\.md/);
-  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/agents\/shelf-implement\.md/);
+  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/agents\/shelf-implement\.toml/);
+  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/config\.toml/);
+  assert.match(manifest.generatedFiles.join('\n'), /\.codex\/hooks\.json/);
   assert.match(manifest.generatedFiles.join('\n'), /\.codex\/prompts\/shelf-continue\.md/);
   assert.equal(hashes.schemaVersion, 1);
   assert.equal(typeof hashes.files['AGENTS.md'].hash, 'string');
   assert.equal(typeof hashes.files['.agents/skills/shelf-brainstorm/SKILL.md'].hash, 'string');
-  assert.equal(typeof hashes.files['.codex/agents/shelf-implement.md'].hash, 'string');
+  assert.equal(typeof hashes.files['.codex/agents/shelf-implement.toml'].hash, 'string');
+  assert.equal(typeof hashes.files['.codex/config.toml'].hash, 'string');
+  assert.equal(typeof hashes.files['.codex/hooks.json'].hash, 'string');
   assert.equal(typeof hashes.files['.codex/prompts/shelf-continue.md'].hash, 'string');
   assert.equal(typeof hashes.files['.shelf/manifest.json'].hash, 'string');
 });
@@ -261,7 +265,7 @@ test('sync dry-run compares transformed Codex agent templates', async () => {
 
   const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
 
-  assert.equal(result.changes.some((change) => change.path === '.codex/agents/shelf-implement.md' && change.status === 'update'), true);
+  assert.equal(result.changes.some((change) => change.path === '.codex/agents/shelf-implement.toml' && change.status === 'update'), true);
 });
 
 test('sync dry-run classifies user-modified projection files without writing them', async () => {
@@ -386,12 +390,12 @@ test('sync dry-run reports missing projected agent files', async () => {
     tools: ['codex']
   }));
 
-  fs.rmSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-research.md'), { force: true });
+  fs.rmSync(path.join(projectDirectory, '.codex', 'agents', 'shelf-research.toml'), { force: true });
 
   const result = await runSilently(() => agentSync(projectDirectory, { dryRun: true }));
 
   assert.equal(result.dryRun, true);
-  assert.equal(result.changes.some((change) => change.path === '.codex/agents/shelf-research.md' && change.status === 'create'), true);
+  assert.equal(result.changes.some((change) => change.path === '.codex/agents/shelf-research.toml' && change.status === 'create'), true);
 });
 
 test('update creates backups before applying projection changes', async () => {
@@ -409,7 +413,7 @@ test('update creates backups before applying projection changes', async () => {
   const result = await runSilently(() => agentUpdate(projectDirectory));
 
   assert.equal(result.updated, true);
-  assert.equal(result.backups.some((backup) => backup.endsWith('.codex/agents/shelf-research.md')), true);
+  assert.equal(result.backups.some((backup) => backup.endsWith('.codex/agents/shelf-research.toml')), true);
   assert.equal(fs.existsSync(path.join(projectDirectory, '.shelf', 'backups')), true);
 });
 

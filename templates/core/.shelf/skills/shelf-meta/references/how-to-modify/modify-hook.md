@@ -2,7 +2,7 @@
 
 Change Claude Code hook behavior.
 
-**Current hook support**: the default CLI installs only a lightweight Claude Code `SessionStart` hook. Codex does not use Shelf hooks; Codex context loading is pull-based through agent and prompt files.
+**Current hook support**: the default CLI installs a lightweight Claude Code `SessionStart` hook and Codex project hooks for `SessionStart` plus `UserPromptSubmit`. Codex hooks require the user's global Codex hook feature flag.
 
 ---
 

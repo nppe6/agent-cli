@@ -49,7 +49,7 @@ description: "Project-local AgentOS Shelf customizations for this repository. Us
 ### Added Or Changed
 
 #### shelf-example
-- **Files**: `.claude/agents/shelf-example.md`, `.codex/agents/shelf-example.md`
+- **Files**: `.claude/agents/shelf-example.md`, `.codex/agents/shelf-example.toml`
 - **Context**: active task -> PRD -> JSONL -> referenced files
 - **Purpose**:
 - **Reason**:

@@ -15,7 +15,7 @@ When the user wants to change `shelf-research`, `shelf-implement`, or `shelf-che
 | Platform | Path |
 | --- | --- |
 | Claude Code | `.claude/agents/shelf-*.md` |
-| Codex | `.codex/agents/shelf-*.md` |
+| Codex | `.codex/agents/shelf-*.toml` |
 
 Use the actual paths in the user project as authoritative.
 

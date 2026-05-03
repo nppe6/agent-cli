@@ -152,7 +152,7 @@ AgentOS Shelf 使用“统一源 + 工具投影”的模型。
 
 `.shelf/` 是共享源。CLI 会根据 manifest 和工具配置生成：
 
-- Codex：`AGENTS.md`、`.codex/agents/`、`.codex/prompts/`、`.agents/skills/`
+- Codex：`AGENTS.md`、`.codex/agents/`、`.codex/config.toml`、`.codex/hooks.json`、`.codex/hooks/`、`.codex/prompts/`、`.agents/skills/`
 - Claude Code：`CLAUDE.md`、`.claude/skills/`、`.claude/agents/`、`.claude/settings.json`、`.claude/hooks/`
 
 根目录文件保持很薄，只负责指向 `.shelf/`。真正的 workflow、规范、任务和项目记忆都留在 Shelf 目录中。

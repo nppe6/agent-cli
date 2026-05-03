@@ -41,9 +41,10 @@ Current AgentOS Shelf CLI projections support Codex and Claude Code. Add another
 | --- | --- | --- |
 | hooks | `.claude/hooks/` | Claude Code session-start reminder hook. |
 | settings | `.claude/settings.json` | Registers the Claude Code hook. |
-| agents | `.claude/agents/`, `.codex/agents/` | Define agents such as `shelf-research`, `shelf-implement`, and `shelf-check`. |
+| agents | `.claude/agents/`, `.codex/agents/` | Define agents such as `shelf-research`, `shelf-implement`, and `shelf-check`; Codex agents are TOML. |
 | skills | `.claude/skills/`, `.agents/skills/` | Skills that auto-trigger or can be read by AI. Codex uses the shared `.agents/skills/` layer. |
 | commands/prompts | `.claude/commands/shelf/`, `.codex/prompts/` | Explicit user-invoked continue and finish-work entry points. |
+| hooks/config | `.claude/settings.json`, `.claude/hooks/`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/hooks/` | Platform startup and workflow-state wiring. |
 
 When modifying a platform directory, also confirm whether `.shelf/workflow.md` still describes the same flow.
 

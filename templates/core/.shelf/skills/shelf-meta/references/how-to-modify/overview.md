@@ -52,7 +52,7 @@ Common AgentOS Shelf customization scenarios and what files need to be modified.
 
 ```
 .claude/agents/my-agent.md                          # Create: Agent definition
-.codex/agents/my-agent.md                           # Create: Codex agent if needed
+.codex/agents/my-agent.toml                         # Create: Codex agent if needed
 .shelf/tasks/{template}/my-agent.jsonl            # Create: Context template
 .shelf-local/SKILL.md                             # Update: Document the change
 ```
@@ -109,7 +109,7 @@ task template code                                  # Modify: Seed JSONL if need
 ```
 .shelf/spec/*/quality-guidelines.md     # Modify: project verification commands
 .claude/agents/shelf-check.md           # Modify: Claude-specific check behavior if needed
-.codex/agents/shelf-check.md            # Modify: Codex-specific check behavior if needed
+.codex/agents/shelf-check.toml          # Modify: Codex-specific check behavior if needed
 ```
 
 **Example**:
@@ -133,7 +133,7 @@ verify:
 ```
 task.json (in task directories)           # Modify: next_action array
 .claude/agents/{new-phase}.md             # Create: If new agent needed
-.codex/agents/{new-phase}.md              # Create: If Codex agent needed
+.codex/agents/{new-phase}.toml            # Create: If Codex agent needed
 .shelf-local/SKILL.md                   # Update: Document the change
 ```
 

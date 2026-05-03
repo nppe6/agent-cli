@@ -22,7 +22,7 @@ Then make sure the active task's `check.jsonl` references the relevant quality s
 If one platform needs different wording, edit:
 
 - `.claude/agents/shelf-check.md`
-- `.codex/agents/shelf-check.md`
+- `.codex/agents/shelf-check.toml`
 
 Keep the core expectation the same across platforms whenever possible.
 

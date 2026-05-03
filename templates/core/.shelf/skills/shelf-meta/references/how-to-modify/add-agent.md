@@ -11,7 +11,7 @@ Add a project-local agent type such as `my-agent`.
 | File | Action | Required |
 |------|--------|----------|
 | `.claude/agents/my-agent.md` | Create if Claude is enabled | Yes for Claude |
-| `.codex/agents/my-agent.md` | Create if Codex is enabled | Yes for Codex |
+| `.codex/agents/my-agent.toml` | Create if Codex is enabled | Yes for Codex |
 | `.shelf/workflow.md` | Update routing if this agent becomes part of the normal flow | Sometimes |
 | `.shelf/scripts/common/task_store.py` | Update only if new tasks should seed a new JSONL file | Sometimes |
 | `shelf-local/SKILL.md` or project-local notes | Document | Recommended |
@@ -89,7 +89,7 @@ Record the customization in a project-local skill or note:
 ## Agents
 
 ### my-agent
-- **Files**: `.claude/agents/my-agent.md`, `.codex/agents/my-agent.md`
+- **Files**: `.claude/agents/my-agent.md`, `.codex/agents/my-agent.toml`
 - **Purpose**: What it does
 - **Context**: Which JSONL file it reads
 - **Reason**: Why it was added
